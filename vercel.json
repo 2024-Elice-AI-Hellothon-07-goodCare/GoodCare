@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "https://hrdjceqyzjwcabjc.tunnel-pt.elice.io/$1"
+    }
+  ]
+}
