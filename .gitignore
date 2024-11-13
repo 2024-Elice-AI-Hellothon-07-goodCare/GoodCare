@@ -2,7 +2,6 @@
 
 *.iml
 *.env
-vercel.json
 
 # dependencies
 /node_modules
