@@ -1,28 +1,31 @@
 import React from 'react';
 import { Home, Layout, PieChart, User } from 'lucide-react';
 
-const NavItem = ({ icon, label, active = false }) => {
+const NavIcon = ({ active = false, isLast = false }) => {
+    if (isLast) {
+        return (
+            <div className={`w-10 h-10 flex items-center justify-center rounded-lg ${active ? 'bg-green-400' : 'bg-green-900'}`}>
+                <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center">
+                    <div className="w-1 h-1 bg-black rounded-full"></div>
+                    <div className="w-1 h-1 bg-black rounded-full ml-1"></div>
+                </div>
+            </div>
+        );
+    }
     return (
-        <button
-            className={`flex flex-col items-center p-2 transition-colors
-        ${active ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-        >
-            {icon}
-            <span className="text-xs mt-1">{label}</span>
-        </button>
+        <div className={`w-10 h-10 rounded-full ${active ? 'bg-white' : 'bg-green-900/20'}`} />
     );
 };
 
 const Navigation = () => {
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg">
-            <div className="max-w-md mx-auto">
-                <div className="flex justify-between items-center px-6 py-2">
-                    <NavItem icon={<Home size={24} />} label="Home" active />
-                    <NavItem icon={<Layout size={24} />} label="Routine" />
-                    <NavItem icon={<PieChart size={24} />} label="Dashboard" />
-                    <NavItem icon={<User size={24} />} label="My" />
-                </div>
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-green-900/80 rounded-full p-2">
+            <div className="flex items-center gap-2">
+                <NavIcon active />
+                <NavIcon />
+                <NavIcon />
+                <NavIcon />
+                <NavIcon isLast active />
             </div>
         </div>
     );
