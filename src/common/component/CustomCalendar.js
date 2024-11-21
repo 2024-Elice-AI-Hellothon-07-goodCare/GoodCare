@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import {useNavigate} from "react-router-dom";
+import { Plus } from 'lucide-react';
 
 const CustomCalendar = ({ view, routines }) => {
     const [date, setDate] = useState(new Date());
+    const navigate = useNavigate();
+
 
     const getStartAndEndDate = (date) => {
         const start = new Date(date);
@@ -133,8 +137,11 @@ const CustomCalendar = ({ view, routines }) => {
 
                 {/* Add Routine Button */}
                 <button
-                    className="w-full mt-4 py-3 bg-white rounded-xl text-gray-500 border-2 border-dashed border-gray-300">
-                    + 루틴 추가
+                    onClick={() => navigate('/routine/add')}
+                    className="w-full mt-4 py-3 bg-white rounded-xl text-gray-500 border-2 border-dashed border-gray-300"
+                >
+                    <Plus className="text-green-800"/>
+                    <span className="ml-2 text-green-800">루틴 추가하기</span>
                 </button>
             </div>
         );
