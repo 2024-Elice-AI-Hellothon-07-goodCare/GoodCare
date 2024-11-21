@@ -1,23 +1,35 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import Navigate from "../../common/component/Navigate";
 import {Card} from "../../common/component/Card";
 import Header from "../../common/component/Header";
 
-const healthData = [
-    { time: '9AM', bp: 120, oxygen: 98 },
-    { time: '11AM', bp: 118, oxygen: 97 },
-    { time: '1PM', bp: 122, oxygen: 98 },
-    { time: '3PM', bp: 119, oxygen: 96 },
-    { time: '5PM', bp: 121, oxygen: 97 },
+const healthMetrics = [
+    { label: '혈압', value: '140/80', unit: 'mmHg', change: '+1.2%', changeType: 'increase' },
+    { label: '맥박', value: '65', unit: '회', change: '-0.8%', changeType: 'decrease' },
+    { label: '산소포화도', value: '95', unit: '%', change: '0.0%', changeType: 'neutral' },
+    { label: '체온', value: '36.1', unit: '°C', change: '+0.1%', changeType: 'increase' }
 ];
 
 const routines = [
-    { title: '약 3회 복용하기', subtitle: '2회완료~', time: '8:00' },
-    { title: '재활운동', subtitle: '몇시 몇시에 30분간~', time: '11:00' },
-    { title: '병원 방문하기', subtitle: '저녁몇시~', time: '' },
-    { title: '루틴 추가하기', isAdd: true }
+    {
+        title: '아침, 점심, 저녁',
+        subtitle: '약 복용 확인',
+        time: '11:30, 15:30, 18:30',
+        type: '매일'
+    },
+    {
+        title: '재활운동 하기',
+        subtitle: '매주 월, 수, 금',
+        time: '',
+        type: '매주'
+    },
+    {
+        title: '병원 방문',
+        subtitle: '11. 18 (금)',
+        time: '13:00',
+        type: ''
+    }
 ];
 
 const Home = () => {
@@ -25,93 +37,95 @@ const Home = () => {
     const formattedDate = `${currentDate.getFullYear()}. ${String(currentDate.getMonth() + 1).padStart(2, '0')}. ${String(currentDate.getDate()).padStart(2, '0')} (${['일', '월', '화', '수', '목', '금', '토'][currentDate.getDay()]})`;
 
     return (
-        <div className="max-w-md mx-auto min-h-screen pb-24" style={{ background: '#CDE5C5' }}>
-            <Header/>
+        <div className="max-w-md mx-auto min-h-screen pb-24" style={{background: '#F5F5F5'}}>
+            <div className="fixed top-0 left-0 right-0 z-10">
+                <Header/>
+            </div>
 
             {/* Main Content */}
-            <div className="pt-24 px-4">
-                {/* Status and Logo */}
-                <div className="flex justify-between items-start gap-10 mb-6">
-                    <Card className="flex-grow p-4 bg-white/90 shadow-sm">
-                        <div className="bg-gray-100 w-fit px-2 py-1 rounded-lg">
-                            <p className="text-sm text-gray-600">{formattedDate}</p>
+            <div className="pt-32 px-4">
+                {/* Status and Character */}
+                <div className="flex justify-between items-start">
+                    {/* Speech Bubble */}
+                    <div className="w-2/3 bg-white rounded-2xl p-4 shadow-sm">
+                        <div className="flex items-center gap-2">
+                            <p className="text-sm bg-gray-100 px-2 py-1 rounded-lg">{formattedDate}</p>
+                            <span className="bg-gray-100 px-2 py-1 rounded-lg text-xs">AI</span>
                         </div>
-                        <div className="mt-2">
-                            <p className="text-lg font-medium">오늘 전성원님의 상태는</p>
-                            <p className="text-lg font-medium flex items-center">
-                                매우 좋아요 <span className="flex items-center">👋 <img src="/img/ai.png" alt="AI"
-                                                                                  className="w-3 h-3 ml-0.5"/></span>
-                            </p>
-                        </div>
-                    </Card>
-                    <div className="w-28 h-38 flex-shrink-0">
-                        <img src="/img/logo.png" alt="GOODCARE" className="w-full h-full object-contain"/>
+                        <p className="mt-2">전성원님의 상태는<br/>매우 좋아요</p>
+                    </div>
+
+                    {/* Character */}
+                    <div className="w-1/3 flex justify-end">
+                        <img src="/img/logo.png" alt="Health Character" className="w-25 h-35"/>
                     </div>
                 </div>
 
-                {/* AI Analysis Status */}
-                <div className="bg-white/90 rounded-xl p-4 mb-6">
-                    <p className="text-sm text-gray-600">AI가 분석 중이에요...</p>
-                </div>
-
                 {/* Health Metrics */}
-                <div className="grid grid-cols-3 gap-3 mb-6">
-                    <Card className="p-3 bg-white/90">
-                        <p className="text-xs mb-2">혈압</p>
-                        <div className="h-12">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={healthData}>
-                                    <Line type="monotone" dataKey="bp" stroke="#4B7B3F" strokeWidth={2} dot={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
+                <div className="grid grid-cols-2 gap-2 mb-2" >
+                    {healthMetrics.map((metric, index) => (
+                        <div key={index} className="bg-white p-3 rounded-xl" style={{background: '#E4EFE0'}}>
+                            <div className="flex justify-between items-start">
+                                <span className="text-sm text-gray-600">{metric.label}</span>
+                                <span className={`text-xs ${
+                                    metric.changeType === 'increase' ? 'text-red-500' :
+                                        metric.changeType === 'decrease' ? 'text-blue-500' :
+                                            'text-gray-500'
+                                }`}>{metric.change}</span>
+                            </div>
+                            <div className="mt-1">
+                                <span className="text-3xl font-medium">{metric.value}</span>
+                                <span className="text-lg text-gray-600 ml-1">{metric.unit}</span>
+                            </div>
                         </div>
-                    </Card>
-                    <Card className="p-3 bg-white/90">
-                        <p className="text-xs mb-2">맥박</p>
-                        <div className="h-12">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={healthData}>
-                                    <Line type="monotone" dataKey="bp" stroke="#4B7B3F" strokeWidth={2} dot={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </Card>
-                    <Card className="p-3 bg-white/90">
-                        <p className="text-xs mb-2">산소포화도</p>
-                        <div className="h-12">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={healthData}>
-                                    <Line type="monotone" dataKey="oxygen" stroke="#4B7B3F" strokeWidth={2} dot={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </Card>
+                    ))}
                 </div>
 
-                {/* Routines Grid */}
-                <div className="grid grid-cols-2 gap-3">
-                    {routines.map((routine, index) => (
-                        <Card
-                            key={index}
-                            className={`p-4 ${routine.isAdd ? 'bg-white/60 border-2 border-dashed border-green-700' : 'bg-white/90'}`}
-                        >
-                            {routine.isAdd ? (
-                                <div className="h-full flex flex-col items-center justify-center text-green-700">
-                                    <Plus size={24} />
-                                    <span className="text-sm mt-2">{routine.title}</span>
+                {/* Today's Routines */}
+                <div className="bg-green-50 rounded-xl p-4" style={{background: '#CDE5C5'}}>
+                    <div className="flex justify-between items-center mb-4" >
+                        <h2>오늘의 루틴</h2>
+                        <div className="flex gap-2">
+                            <button className="w-6 h-6 bg-white rounded-full flex items-center justify-center">{'<'}</button>
+                            <button className="w-6 h-6 bg-white rounded-full flex items-center justify-center">{'>'}</button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2" >
+                        {routines.map((routine, index) => (
+                            <div key={index} className="bg-white rounded-xl p-4" >
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="font-medium">{routine.title}</h3>
+                                        <p className="text-sm text-gray-600">{routine.subtitle}</p>
+                                    </div>
+                                    <button className="text-red-500">♥</button>
                                 </div>
-                            ) : (
-                                <div>
-                                    <h3 className="font-medium mb-1">{routine.title}</h3>
-                                    <p className="text-sm text-gray-600">{routine.subtitle}</p>
-                                </div>
-                            )}
-                        </Card>
-                    ))}
+                                {routine.time && (
+                                    <div className="mt-2 text-sm text-gray-600">
+                                        <span className="mr-2">⏰</span>
+                                        {routine.time}
+                                    </div>
+                                )}
+                                {routine.type && (
+                                    <div className="mt-1 text-sm text-gray-600">
+                                        <span className="mr-2">🔄</span>
+                                        {routine.type}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+
+                        {/* Add Routine Button */}
+                        <button className="w-full bg-white rounded-xl p-4 flex items-center justify-center">
+                            <Plus className="text-green-800"/>
+                            <span className="ml-2 text-green-800">루틴 추가하기</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <Navigate />
+            <Navigate/>
         </div>
     );
 };

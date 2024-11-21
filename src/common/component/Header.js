@@ -29,7 +29,7 @@ const Header = ({
                 ${className}
             `}
             style={{
-                background: '#CDE5C5',
+                background: '#F5F5F5',
                 maxWidth: '100%',
                 width: 'calc(100% - 38px)', // 좌우 8px씩 여백
                 margin: '0 auto'
