@@ -11,6 +11,7 @@ import SituationCheck from "./pages/alert/SituationCheck";
 import SituationDetails from "./pages/alert/SituationDetails";
 import RoutineConfirmation from "./pages/alert/RoutineConfirmation";
 import RoutineCancelConfirm from "./pages/alert/RoutineCancelConfirm";
+import RoutineMain from "./pages/caregiver/routine/RoutineMain";
 
 const App = () => {
     return (
@@ -27,6 +28,7 @@ const App = () => {
                 <Route path="/alert/details" element={<SituationDetails />} />
                 <Route path="/alert/routine" element={<RoutineConfirmation />} />
                 <Route path="/alert/cancel-confirm" element={<RoutineCancelConfirm />} />
+                <Route path="/routine/routine-main" element={<RoutineMain />} />
 
 
 
