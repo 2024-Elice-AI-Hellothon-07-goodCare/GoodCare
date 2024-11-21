@@ -2,10 +2,36 @@ import React, {useState} from 'react';
 import { Plus, MoreVertical } from 'lucide-react';
 import CustomCalendar from "../../../common/component/CustomCalendar";
 import Navigate from "../../../common/component/Navigate";
+import Dropdown from "../../../common/component/Dropdown";
 
 const RoutineMain = () => {
     const [view, setView] = useState('month');
     const [favorites, setFavorites] = useState(new Set());
+
+    const [openMenuId, setOpenMenuId] = useState(null);
+
+    function handleEditRoutine(routineId) {
+        return undefined;
+    }
+
+    function handleDeleteRoutine(routineId) {
+        return undefined;
+    }
+
+    // 루틴 메뉴 아이템 정의
+    const getRoutineMenuItems = (routineId) => [
+        {
+            label: '루틴 수정',
+            onClick: () => handleEditRoutine(routineId),
+        },
+        {
+            label: '루틴 삭제',
+            onClick: () => handleDeleteRoutine(routineId),
+            color: 'red'
+        }
+    ];
+    
+    
 
     const toggleFavorite = (routineId) => {
         setFavorites(prev => {
@@ -116,14 +142,22 @@ const RoutineMain = () => {
                                             {routine.time && <span>⏰ {routine.time}</span>}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 relative">
                                         <button
                                             onClick={() => toggleFavorite(routine.id)}
                                             className={`text-xl ${favorites.has(routine.id) ? 'text-red-500' : 'text-gray-300'}`}
                                         >
                                             ♥
                                         </button>
-                                        <button><MoreVertical size={20} className="text-gray-400" /></button>
+                                        <button
+                                            onClick={() => setOpenMenuId(openMenuId === routine.id ? null : routine.id)}>
+                                            <MoreVertical size={20} className="text-gray-400"/>
+                                        </button>
+                                        <Dropdown
+                                            isOpen={openMenuId === routine.id}
+                                            onClose={() => setOpenMenuId(null)}
+                                            items={getRoutineMenuItems(routine.id)}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -131,17 +165,18 @@ const RoutineMain = () => {
                 </div>
             </div>
 
-            {/* Today's Completed Routines */}
-            <div className="mx-4 mt-6 mb-24">
-                <h2 className="text-sm text-gray-600 mb-2">오늘의 완료된 루틴</h2>
-                <div className="space-y-2">
-                    {routines
-                        .filter(routine => routine.isCompleted)
-                        .map((routine) => (
-                            <div key={routine.id} className="bg-green-50 rounded-xl p-4">
-                                <div className="flex items-start justify-between">
+                {/* Today's Completed Routines */}
+                <div className="mx-4 mt-6 mb-24">
+                    <h2 className="text-sm text-gray-600 mb-2">오늘의 완료된 루틴</h2>
+                    <div className="space-y-2">
+                        {routines
+                            .filter(routine => routine.isCompleted)
+                            .map((routine) => (
+                                <div key={routine.id} className="bg-green-50 rounded-xl p-4">
+                                    <div className="flex items-start justify-between">
                                     <div className="flex gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-green-200 flex items-center justify-center">
+                                        <div
+                                            className="w-8 h-8 rounded-full bg-green-200 flex items-center justify-center">
                                             <span className="text-xl">🌱</span>
                                         </div>
                                         <div>
@@ -152,14 +187,22 @@ const RoutineMain = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 relative">
                                         <button
                                             onClick={() => toggleFavorite(routine.id)}
                                             className={`text-xl ${favorites.has(routine.id) ? 'text-red-500' : 'text-gray-300'}`}
                                         >
                                             ♥
                                         </button>
-                                        <button><MoreVertical size={20} className="text-gray-400" /></button>
+                                        <button
+                                            onClick={() => setOpenMenuId(openMenuId === routine.id ? null : routine.id)}>
+                                            <MoreVertical size={20} className="text-gray-400"/>
+                                        </button>
+                                        <Dropdown
+                                            isOpen={openMenuId === routine.id}
+                                            onClose={() => setOpenMenuId(null)}
+                                            items={getRoutineMenuItems(routine.id)}
+                                        />
                                     </div>
                                 </div>
                             </div>
