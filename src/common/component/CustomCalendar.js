@@ -1,14 +1,8 @@
 import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import {useNavigate} from "react-router-dom";
-import { Plus } from 'lucide-react';
 
-const CustomCalendar = ({ view, routines }) => {
-    const [date, setDate] = useState(new Date());
-    const navigate = useNavigate();
-
-
+const CustomCalendar = ({ view, routines, selectedDate, onDateSelect }) => {
     const getStartAndEndDate = (date) => {
         const start = new Date(date);
         start.setDate(start.getDate() - start.getDay());
@@ -18,6 +12,10 @@ const CustomCalendar = ({ view, routines }) => {
     };
 
     const [currentWeek, setCurrentWeek] = useState(getStartAndEndDate(new Date()));
+
+    const handleDateClick = (date) => {
+        onDateSelect(date);
+    };
 
     const checkRoutineStatus = (date) => {
         // 실제로는 routines 배열에서 해당 날짜의 루틴들을 확인하여 상태를 반환
@@ -61,8 +59,7 @@ const CustomCalendar = ({ view, routines }) => {
                 currentDate.setDate(startDate.getDate() + i);
                 dates.push({
                     date: currentDate,
-                    ...checkRoutineStatus(currentDate),
-                    isSelected: currentDate.toDateString() === new Date().toDateString()
+                    ...checkRoutineStatus(currentDate)
                 });
             }
             return dates;
@@ -109,12 +106,12 @@ const CustomCalendar = ({ view, routines }) => {
 
                 {/* Dates */}
                 <div className="grid grid-cols-7 gap-1">
-                    {weekDates.map(({date, completed, failed, isSelected}, index) => (
+                    {weekDates.map(({date, completed, failed}, index) => (
                         <div
                             key={index}
-                            className={`relative text-center py-2 px-1 rounded-xl transition-all
-                                ${isSelected ? 'bg-green-200' : 'hover:bg-green-100'}
-                                ${date.toDateString() === new Date().toDateString() ? 'font-bold' : ''}
+                            onClick={() => handleDateClick(date)}
+                            className={`relative text-center py-2 px-1 rounded-xl transition-all cursor-pointer
+                                ${date.toDateString() === selectedDate?.toDateString() ? 'bg-green-200' : 'hover:bg-green-100'}
                             `}
                         >
                             <div className={`text-lg mb-1 ${
@@ -134,15 +131,6 @@ const CustomCalendar = ({ view, routines }) => {
                         </div>
                     ))}
                 </div>
-
-                {/* Add Routine Button */}
-                <button
-                    onClick={() => navigate('/routine/add')}
-                    className="w-full mt-4 py-3 bg-white rounded-xl text-gray-500 border-2 border-dashed border-gray-300"
-                >
-                    <Plus className="text-green-800"/>
-                    <span className="ml-2 text-green-800">루틴 추가하기</span>
-                </button>
             </div>
         );
     };
@@ -152,8 +140,8 @@ const CustomCalendar = ({ view, routines }) => {
             <div style={{background: '#E4EFE0'}} className="rounded-2xl">
                 {view === 'month' ? (
                     <Calendar
-                        onChange={setDate}
-                        value={date}
+                        onChange={handleDateClick}
+                        value={selectedDate}
                         locale="ko-KR"
                         formatDay={(locale, date) => date.getDate()}
                         className="w-full border-none"
@@ -161,9 +149,8 @@ const CustomCalendar = ({ view, routines }) => {
                         prev2Label={null}
                         next2Label={null}
                         minDetail="month"
-                        navigationClassName="bg-[#E4EFE0]"  // 네비게이션 클래스 추가
                         navigationLabel={({ date }) => (
-                            <div style={{background: '#E4EFE0'}} className="w-full py-4">  {/* 년월 표시 부분에 직접 스타일 적용 */}
+                            <div style={{background: '#E4EFE0'}} className="w-full py-4">
                                 {`${date.getFullYear()}년 ${date.getMonth() + 1}월`}
                             </div>
                         )}
@@ -181,9 +168,9 @@ const CustomCalendar = ({ view, routines }) => {
                             );
                         }}
                         tileClassName={({ date }) =>
-                            `flex flex-col justify-center items-center h-11 hover:bg-green-100 rounded-lg
-                        ${date.toDateString() === new Date().toDateString() ? 'bg-green-50 rounded-lg' : ''}
-                        `
+                            `flex flex-col justify-center items-center h-11 hover:bg-green-100 rounded-lg cursor-pointer
+                            ${date.toDateString() === selectedDate?.toDateString() ? 'bg-green-200' : ''}
+                            `
                         }
                     />
                 ) : (
@@ -198,15 +185,14 @@ const CustomCalendar = ({ view, routines }) => {
 
                 .react-calendar__navigation {
                     @apply mb-0;
-                    background: #E4EFE0; /* 직접 색상 지정 */
+                    background: #E4EFE0;
                 }
 
                 .react-calendar__navigation button {
                     @apply text-base;
-                    background: #E4EFE0; /* 버튼 배경색도 동일하게 지정 */
+                    background: #E4EFE0;
                 }
 
-                /* 네비게이션 영역의 패딩과 라운드 처리 */
                 .react-calendar__navigation {
                     @apply p-4 rounded-t-2xl;
                 }
