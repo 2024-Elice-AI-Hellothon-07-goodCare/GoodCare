@@ -1,117 +1,199 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check } from 'lucide-react';
-import Header from '../../../common/component/Header';
 
 const DiagnosisChecklist = () => {
     const navigate = useNavigate();
+    const [isValid, setIsValid] = useState(false);
 
-    const [mealSymptoms, setMealSymptoms] = useState({
-        appetite: false,
-        nausea: false,
-        digestion: false,
-        swallowing: false
+    const [consciousnessLevel, setConsciousnessLevel] = useState({
+        clear: false,
+        drowsy: false,
+        confused: false,
+        semicoma: false
     });
 
-    const [physicalSymptoms, setPhysicalSymptoms] = useState({
-        painDiscomfort: false,
-        sleepiness: false,
-        fatigue: false,
-        constipation: false
+    const [behaviorChanges, setBehaviorChanges] = useState({
+        normal: false,
+        anxiety: false,
+        depression: false,
+        excited: false
     });
+
+    useEffect(() => {
+        // 각 섹션에서 하나 이상 선택되었는지 확인
+        const hasConsciousnessSelected = Object.values(consciousnessLevel).some(value => value);
+        const hasBehaviorSelected = Object.values(behaviorChanges).some(value => value);
+
+        // 두 섹션 모두에서 하나 이상 선택되어야 유효
+        setIsValid(hasConsciousnessSelected && hasBehaviorSelected);
+    }, [consciousnessLevel, behaviorChanges]);
 
     const CheckItem = ({ label, checked, onChange }) => (
         <button
             onClick={onChange}
             className={`
-        w-full p-4 rounded-xl mb-3 flex justify-between items-center
-        ${checked ? 'bg-blue-50' : 'bg-gray-50'}
-        transition-colors duration-200
-      `}
+                w-full p-4 rounded-lg flex justify-between items-center mb-3
+                ${checked ? 'bg-[#E4EFE0]' : 'bg-[#E4EFE0]'}
+            `}
         >
-            <span className="text-gray-900">{label}</span>
-            {checked && <Check size={20} className="text-blue-500" />}
+            <span>{label}</span>
+            {checked && (
+                <div className="w-5 h-5 rounded-full flex items-center justify-center">
+                    <span className="text-[#496E1B]">✓</span>
+                </div>
+            )}
         </button>
     );
 
     return (
-        <div className="min-h-screen bg-white">
-            <Header
-                title="일일 진단하기"
-                showBack={true}
-                showNotification={false}
-            />
+        <div className="min-h-screen bg-[#E9EEEA] flex flex-col">
+            <div className="fixed top-0 left-0 right-0 bg-[#E9EEEA] z-50">
+                <div className="h-14 flex items-center justify-between px-4 border-b">
+                    <button onClick={() => navigate(-1)} className="p-2 -ml-2">
+                        ←
+                    </button>
+                    <span className="absolute left-1/2 -translate-x-1/2 font-medium">
+                        일일 진단하기
+                    </span>
+                </div>
+            </div>
 
-            <main className="px-4 pt-[104px] pb-24">
-                <h2 className="text-lg mb-6">
+            <main className="flex-1 px-4 pt-20 pb-24">
+                <h2 className="text-xl font-bold mb-8">
                     성원님의 의식과 정신 상태를 체크해주세요.
                 </h2>
 
                 {/* 의식 수준 섹션 */}
                 <div className="mb-8">
-                    <h3 className="text-gray-600 text-sm mb-3">의식 수준</h3>
+                    <h3 className="text-gray-600 mb-3">의식 수준</h3>
                     <CheckItem
                         label="명료해요"
-                        checked={mealSymptoms.appetite}
-                        onChange={() => setMealSymptoms(prev => ({ ...prev, appetite: !prev.appetite }))}
+                        checked={consciousnessLevel.clear}
+                        onChange={() => {
+                            const newValue = !consciousnessLevel.clear;
+                            setConsciousnessLevel({
+                                clear: newValue,
+                                drowsy: false,
+                                confused: false,
+                                semicoma: false
+                            });
+                        }}
                     />
                     <CheckItem
                         label="기면"
-                        checked={mealSymptoms.nausea}
-                        onChange={() => setMealSymptoms(prev => ({ ...prev, nausea: !prev.nausea }))}
+                        checked={consciousnessLevel.drowsy}
+                        onChange={() => {
+                            const newValue = !consciousnessLevel.drowsy;
+                            setConsciousnessLevel({
+                                clear: false,
+                                drowsy: newValue,
+                                confused: false,
+                                semicoma: false
+                            });
+                        }}
                     />
                     <CheckItem
                         label="혼미"
-                        checked={mealSymptoms.digestion}
-                        onChange={() => setMealSymptoms(prev => ({ ...prev, digestion: !prev.digestion }))}
+                        checked={consciousnessLevel.confused}
+                        onChange={() => {
+                            const newValue = !consciousnessLevel.confused;
+                            setConsciousnessLevel({
+                                clear: false,
+                                drowsy: false,
+                                confused: newValue,
+                                semicoma: false
+                            });
+                        }}
                     />
                     <CheckItem
                         label="반혼수 / 혼수"
-                        checked={mealSymptoms.swallowing}
-                        onChange={() => setMealSymptoms(prev => ({ ...prev, swallowing: !prev.swallowing }))}
+                        checked={consciousnessLevel.semicoma}
+                        onChange={() => {
+                            const newValue = !consciousnessLevel.semicoma;
+                            setConsciousnessLevel({
+                                clear: false,
+                                drowsy: false,
+                                confused: false,
+                                semicoma: newValue
+                            });
+                        }}
                     />
                 </div>
 
                 {/* 기타 및 행동 변화 섹션 */}
                 <div>
-                    <h3 className="text-gray-600 text-sm mb-3">기타 및 행동 변화</h3>
+                    <h3 className="text-gray-600 mb-3">기타 및 행동 변화</h3>
                     <CheckItem
                         label="평소와 동일함"
-                        checked={physicalSymptoms.painDiscomfort}
-                        onChange={() => setPhysicalSymptoms(prev => ({ ...prev, painDiscomfort: !prev.painDiscomfort }))}
+                        checked={behaviorChanges.normal}
+                        onChange={() => {
+                            const newValue = !behaviorChanges.normal;
+                            setBehaviorChanges({
+                                normal: newValue,
+                                anxiety: false,
+                                depression: false,
+                                excited: false
+                            });
+                        }}
                     />
                     <CheckItem
                         label="불안"
-                        checked={physicalSymptoms.sleepiness}
-                        onChange={() => setPhysicalSymptoms(prev => ({ ...prev, sleepiness: !prev.sleepiness }))}
+                        checked={behaviorChanges.anxiety}
+                        onChange={() => {
+                            const newValue = !behaviorChanges.anxiety;
+                            setBehaviorChanges({
+                                normal: false,
+                                anxiety: newValue,
+                                depression: false,
+                                excited: false
+                            });
+                        }}
                     />
                     <CheckItem
                         label="우울"
-                        checked={physicalSymptoms.fatigue}
-                        onChange={() => setPhysicalSymptoms(prev => ({ ...prev, fatigue: !prev.fatigue }))}
+                        checked={behaviorChanges.depression}
+                        onChange={() => {
+                            const newValue = !behaviorChanges.depression;
+                            setBehaviorChanges({
+                                normal: false,
+                                anxiety: false,
+                                depression: newValue,
+                                excited: false
+                            });
+                        }}
                     />
                     <CheckItem
                         label="흥분 / 과민"
-                        checked={physicalSymptoms.constipation}
-                        onChange={() => setPhysicalSymptoms(prev => ({ ...prev, constipation: !prev.constipation }))}
+                        checked={behaviorChanges.excited}
+                        onChange={() => {
+                            const newValue = !behaviorChanges.excited;
+                            setBehaviorChanges({
+                                normal: false,
+                                anxiety: false,
+                                depression: false,
+                                excited: newValue
+                            });
+                        }}
                     />
                 </div>
             </main>
 
-            {/* 하단 네비게이션 버튼 */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
-                <div className="flex gap-3 max-w-md mx-auto">
+            {/* 하단 버튼 */}
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#E9EEEA]">
+                <div className="flex gap-3">
                     <button
                         onClick={() => navigate(-1)}
-                        className="flex-1 py-4 bg-gray-100 rounded-xl text-gray-900 font-medium
-                     active:bg-gray-200 transition-colors duration-200"
+                        className="flex-1 py-4 rounded-xl text-[#496E1B] font-medium bg-[#E4EFE0]"
                     >
                         이전
                     </button>
                     <button
-                        onClick={() => navigate('/diagnosis/physical')}
-                        className="flex-1 py-4 bg-gray-100 rounded-xl text-gray-900 font-medium
-                     active:bg-gray-200 transition-colors duration-200"
+                        onClick={() => isValid && navigate('/diagnosis/physical')}
+                        className={`flex-1 py-4 rounded-xl font-medium 
+                            ${isValid
+                            ? 'bg-[#496E1B] text-white cursor-pointer'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }`}
                     >
                         다음
                     </button>
