@@ -1,17 +1,77 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DiagnosisHeader from "./DiagnosisHeader";
+import Loading from "../../../common/component/Loading";
 
 const DiagnosisResult = () => {
     const navigate = useNavigate();
+    const [vitalSigns, setVitalSigns] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchVitalSigns = async () => {
+            try {
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/patient/daily-check/get/vital-signs?code=964F19`, {
+                    method: 'GET',
+                    headers: {
+                        'accept': '*/*'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch vital signs');
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    setVitalSigns(result.data);
+                } else {
+                    throw new Error(result.message || 'Failed to fetch data');
+                }
+            } catch (error) {
+                console.error('Error fetching vital signs:', error);
+                setError(error.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchVitalSigns();
+    }, []);
+
+    if (isLoading) {
+        return (
+            <Loading
+                spinnerSize="w-32 h-32"
+                message={
+                    <>
+                        진단 결과를<br />
+                        분석하고 있어요
+                    </>
+                }
+                showHeader={true}
+                headerTitle="일일 진단하기"
+            />
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-[#E9EEEA] flex flex-col">
+                <DiagnosisHeader />
+                <div className="flex-1 flex items-center justify-center">
+                    <p className="text-red-500">데이터를 불러오는데 실패했습니다.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#E9EEEA] flex flex-col">
-            {/* Header */}
             <DiagnosisHeader />
 
             <main className="flex-1 px-4 pt-20 pb-24">
-                {/* Character Image */}
                 <div className="flex justify-center mb-6">
                     <img
                         src="/img/marimo/Poor-yellow.png"
@@ -20,66 +80,65 @@ const DiagnosisResult = () => {
                     />
                 </div>
 
-                {/* Status Message Card */}
                 <div className="bg-white rounded-2xl p-4 mb-6">
                     <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                        <span>2024. 11. 18 (금)</span>
+                        <span>{new Date().toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            weekday: 'short'
+                        })}</span>
                         <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">AI</span>
                     </div>
                     <p className="text-base">
                         전성원님의 상태는 보통이에요<br />
-                        평소보다 혈압이 높고 맥박과 체온이 떨어졌어요
+                        {vitalSigns && `현재 혈압은 ${vitalSigns.bloodPressureSys}/${vitalSigns.bloodPressureDia}mmHg, 
+                        체온은 ${vitalSigns.temperature}°C입니다.`}
                     </p>
                 </div>
 
-                {/* Vital Signs Grid */}
                 <div className="grid grid-cols-2 gap-3 mb-6">
-                    {/* Blood Pressure */}
                     <div className="bg-[#F6FFF3] p-4 rounded-2xl">
                         <div className="flex justify-between items-center mb-1">
                             <span>혈압</span>
                             <span className="text-red-500">↑ 1.2%</span>
                         </div>
                         <div className="text-2xl font-bold">
-                            140<span className="text-base font-normal text-gray-500">/80 mmHg</span>
+                            {vitalSigns?.bloodPressureSys}<span className="text-base font-normal text-gray-500">/{vitalSigns?.bloodPressureDia} mmHg</span>
                         </div>
                     </div>
 
-                    {/* Pulse */}
                     <div className="bg-[#F6FFF3] p-4 rounded-2xl">
                         <div className="flex justify-between items-center mb-1">
                             <span>맥박</span>
                             <span className="text-blue-500">↓ 0.8%</span>
                         </div>
                         <div className="text-2xl font-bold">
-                            65<span className="text-base font-normal text-gray-500"> 회</span>
+                            {vitalSigns?.pulse}<span className="text-base font-normal text-gray-500"> 회</span>
                         </div>
                     </div>
 
-                    {/* Oxygen Saturation */}
                     <div className="bg-[#F6FFF3] p-4 rounded-2xl">
                         <div className="flex justify-between items-center mb-1">
                             <span>산소포화도</span>
                             <span className="text-gray-500">0.0%</span>
                         </div>
                         <div className="text-2xl font-bold">
-                            95<span className="text-base font-normal text-gray-500"> %</span>
+                            {vitalSigns?.oxygen}<span className="text-base font-normal text-gray-500"> %</span>
                         </div>
                     </div>
 
-                    {/* Temperature */}
                     <div className="bg-[#F6FFF3] p-4 rounded-2xl">
                         <div className="flex justify-between items-center mb-1">
                             <span>체온</span>
                             <span className="text-blue-500">↓ 0.1%</span>
                         </div>
                         <div className="text-2xl font-bold">
-                            36.1<span className="text-base font-normal text-gray-500"> °C</span>
+                            {vitalSigns?.temperature}<span className="text-base font-normal text-gray-500"> °C</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Analysis Section */}
                 <div className="bg-[#F6FFF3] p-4 rounded-2xl mb-6">
                     <h3 className="font-medium mb-3">환자 분석</h3>
                     <ul className="text-sm space-y-2 text-gray-600">
@@ -89,7 +148,6 @@ const DiagnosisResult = () => {
                     </ul>
                 </div>
 
-                {/* Additional Action Buttons */}
                 <div className="flex gap-3 mb-6">
                     <button
                         onClick={() => navigate('/diagnosis/detail')}
@@ -105,7 +163,6 @@ const DiagnosisResult = () => {
                     </button>
                 </div>
 
-                {/* Bottom Navigation Buttons */}
                 <div className="flex gap-3">
                     <button
                         onClick={() => navigate('/dashboard')}

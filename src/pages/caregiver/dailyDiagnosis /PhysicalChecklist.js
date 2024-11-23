@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DiagnosisHeader from "./DiagnosisHeader";
+import { useDiagnosis } from "../../../context/DiagnosisContext";
 
 const PhysicalChecklist = () => {
     const navigate = useNavigate();
+    const { updateDiagnosisData } = useDiagnosis();
     const [isValid, setIsValid] = useState(false);
 
     const [skinConditions, setSkinConditions] = useState({
         normal: false,
-        rash: false,
-        swelling: false,
-        bedsore: false
+        redness: false,
+        bedsore: false,
+        edema: false
     });
 
     const [painStatus, setPainStatus] = useState({
@@ -26,22 +28,71 @@ const PhysicalChecklist = () => {
         needHelp: false
     });
 
-    useEffect(() => {
-        // 각 섹션에서 하나 이상 선택되었는지 확인
-        const hasSkinSelected = Object.values(skinConditions).some(value => value);
-        const hasPainSelected = Object.values(painStatus).some(value => value);
-        const hasMovementSelected = Object.values(movementStatus).some(value => value);
+    const statusMappings = {
+        skin: {
+            normal: 'NORMAL',
+            redness: 'REDNESS',
+            edema: 'EDEMA',
+            bedsore: 'BEDSORE'
+        },
+        pain: {
+            none: 'NONE',
+            mild: 'MIGHT',
+            moderate: 'MEDIUM',
+            severe: 'SEVERE'
+        },
+        mobility: {
+            normal: 'NORMAL',
+            limited: 'LIMITED',
+            needHelp: 'NEED_TO_HELP'
+        }
+    };
 
-        // 모든 섹션에서 하나 이상 선택되어야 유효
-        setIsValid(hasSkinSelected && hasPainSelected && hasMovementSelected);
-    }, [skinConditions, painStatus, movementStatus]);
+    const handleStatusChange = useCallback((type, key) => {
+        const setterFunctions = {
+            skin: setSkinConditions,
+            pain: setPainStatus,
+            mobility: setMovementStatus
+        };
 
-    const CheckItem = ({ label, checked, onChange }) => (
+        setterFunctions[type](prev => {
+            const newState = Object.keys(prev).reduce((acc, k) => ({
+                ...acc,
+                [k]: k === key ? !prev[k] : false
+            }), {});
+
+            let selectedSkin = Object.entries(skinConditions)
+                .find(([k, v]) => type === 'skin' ? k === key && !prev[k] : v)?.[0] || '';
+            let selectedPain = Object.entries(painStatus)
+                .find(([k, v]) => type === 'pain' ? k === key && !prev[k] : v)?.[0] || '';
+            let selectedMobility = Object.entries(movementStatus)
+                .find(([k, v]) => type === 'mobility' ? k === key && !prev[k] : v)?.[0] || '';
+
+            if (type === 'skin') selectedSkin = key;
+            if (type === 'pain') selectedPain = key;
+            if (type === 'mobility') selectedMobility = key;
+
+            const hasAllSelections = (selectedSkin && selectedPain && selectedMobility);
+            setIsValid(hasAllSelections);
+
+            if (hasAllSelections) {
+                updateDiagnosisData('physicalStatusDTO', {
+                    skinCondition: statusMappings.skin[selectedSkin],
+                    painLevel: statusMappings.pain[selectedPain],
+                    mobility: statusMappings.mobility[selectedMobility]
+                });
+            }
+
+            return newState;
+        });
+    }, [skinConditions, painStatus, movementStatus, updateDiagnosisData]);
+
+    const CheckItem = React.memo(({ label, checked, onChange }) => (
         <button
             onClick={onChange}
             className={`
                 w-full p-4 rounded-lg flex justify-between items-center mb-3
-                ${checked ? 'bg-[#E4EFE0]' : 'bg-[#E4EFE0]'}
+                ${checked ? 'bg-[#CDE5C5]' : 'bg-[#F6FFF3]'}
             `}
         >
             <span>{label}</span>
@@ -51,7 +102,21 @@ const PhysicalChecklist = () => {
                 </div>
             )}
         </button>
-    );
+    ));
+
+    const StatusSection = React.memo(({ title, items, type, status, onStatusChange }) => (
+        <div className="mb-8">
+            <h3 className="text-gray-600 mb-3">{title}</h3>
+            {Object.entries(items).map(([key, label]) => (
+                <CheckItem
+                    key={key}
+                    label={label}
+                    checked={status[key]}
+                    onChange={() => onStatusChange(type, key)}
+                />
+            ))}
+        </div>
+    ));
 
     return (
         <div className="min-h-screen bg-[#E9EEEA] flex flex-col">
@@ -62,131 +127,46 @@ const PhysicalChecklist = () => {
                     성원님의 신체 상태를 체크해주세요.
                 </h2>
 
-                {/* 피부 상태 섹션 */}
-                <div className="mb-8">
-                    <h3 className="text-gray-600 mb-3">피부 상태</h3>
-                    <CheckItem
-                        label="정상"
-                        checked={skinConditions.normal}
-                        onChange={() => setSkinConditions({
-                            normal: !skinConditions.normal,
-                            rash: false,
-                            swelling: false,
-                            bedsore: false
-                        })}
-                    />
-                    <CheckItem
-                        label="발적"
-                        checked={skinConditions.rash}
-                        onChange={() => setSkinConditions({
-                            normal: false,
-                            rash: !skinConditions.rash,
-                            swelling: false,
-                            bedsore: false
-                        })}
-                    />
-                    <CheckItem
-                        label="부종"
-                        checked={skinConditions.swelling}
-                        onChange={() => setSkinConditions({
-                            normal: false,
-                            rash: false,
-                            swelling: !skinConditions.swelling,
-                            bedsore: false
-                        })}
-                    />
-                    <CheckItem
-                        label="욕창 발생"
-                        checked={skinConditions.bedsore}
-                        onChange={() => setSkinConditions({
-                            normal: false,
-                            rash: false,
-                            swelling: false,
-                            bedsore: !skinConditions.bedsore
-                        })}
-                    />
-                </div>
+                <StatusSection
+                    title="피부 상태"
+                    items={{
+                        normal: "정상",
+                        redness: "발적",
+                        edema: "부종",
+                        bedsore: "욕창 발생"
+                    }}
+                    type="skin"
+                    status={skinConditions}
+                    onStatusChange={handleStatusChange}
+                />
 
-                {/* 통증 여부 섹션 */}
-                <div className="mb-8">
-                    <h3 className="text-gray-600 mb-3">통증 여부</h3>
-                    <CheckItem
-                        label="없음"
-                        checked={painStatus.none}
-                        onChange={() => setPainStatus({
-                            none: !painStatus.none,
-                            mild: false,
-                            moderate: false,
-                            severe: false
-                        })}
-                    />
-                    <CheckItem
-                        label="경미한 통증"
-                        checked={painStatus.mild}
-                        onChange={() => setPainStatus({
-                            none: false,
-                            mild: !painStatus.mild,
-                            moderate: false,
-                            severe: false
-                        })}
-                    />
-                    <CheckItem
-                        label="중증"
-                        checked={painStatus.moderate}
-                        onChange={() => setPainStatus({
-                            none: false,
-                            mild: false,
-                            moderate: !painStatus.moderate,
-                            severe: false
-                        })}
-                    />
-                    <CheckItem
-                        label="심각한 통증"
-                        checked={painStatus.severe}
-                        onChange={() => setPainStatus({
-                            none: false,
-                            mild: false,
-                            moderate: false,
-                            severe: !painStatus.severe
-                        })}
-                    />
-                </div>
+                <StatusSection
+                    title="통증 여부"
+                    items={{
+                        none: "없음",
+                        mild: "경미한 통증",
+                        moderate: "중증",
+                        severe: "심각한 통증"
+                    }}
+                    type="pain"
+                    status={painStatus}
+                    onStatusChange={handleStatusChange}
+                />
 
-                {/* 운동 및 자세 변화 섹션 */}
-                <div>
-                    <h3 className="text-gray-600 mb-3">운동 및 자세 변화 여부</h3>
-                    <CheckItem
-                        label="정상"
-                        checked={movementStatus.normal}
-                        onChange={() => setMovementStatus({
-                            normal: !movementStatus.normal,
-                            limited: false,
-                            needHelp: false
-                        })}
-                    />
-                    <CheckItem
-                        label="제한적인 움직임"
-                        checked={movementStatus.limited}
-                        onChange={() => setMovementStatus({
-                            normal: false,
-                            limited: !movementStatus.limited,
-                            needHelp: false
-                        })}
-                    />
-                    <CheckItem
-                        label="부축 및 추가 대응 필요"
-                        checked={movementStatus.needHelp}
-                        onChange={() => setMovementStatus({
-                            normal: false,
-                            limited: false,
-                            needHelp: !movementStatus.needHelp
-                        })}
-                    />
-                </div>
+                <StatusSection
+                    title="운동 및 자세 변화 여부"
+                    items={{
+                        normal: "정상",
+                        limited: "제한적인 움직임",
+                        needHelp: "부축 및 추가 대응 필요"
+                    }}
+                    type="mobility"
+                    status={movementStatus}
+                    onStatusChange={handleStatusChange}
+                />
             </main>
 
-            {/* 하단 버튼 */}
-            <div className=" left-0 right-0 pb-20 bg-[#E9EEEA]">
+            <div className="left-0 right-0 pb-20 bg-[#E9EEEA]">
                 <div className="flex gap-3">
                     <button
                         onClick={() => navigate(-1)}

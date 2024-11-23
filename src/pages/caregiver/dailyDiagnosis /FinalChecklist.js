@@ -1,28 +1,103 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Loading from "../../../common/component/Loading";
 import DiagnosisHeader from "./DiagnosisHeader";
+import { useDiagnosis } from "../../../context/DiagnosisContext";
 
 const FinalChecklist = () => {
     const navigate = useNavigate();
+    const { updateDiagnosisData, submitDiagnosisData } = useDiagnosis();
     const [isLoading, setIsLoading] = useState(false);
-    const [isValid, setIsValid] = useState(false);
-    const [note, setNote] = useState('');
-    const [medication, setMedication] = useState(null);
-    const [sideEffects, setSideEffects] = useState(null);
+    const [error, setError] = useState('');
+    const [formData, setFormData] = useState({
+        medication: null,
+        sideEffects: null,
+        note: ''
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // 약물 복용 상태 변경
+    const handleMedicationChange = useCallback((value) => {
+        setFormData(prev => ({
+            ...prev,
+            medication: value
+        }));
+    }, []);
+
+    // 부작용 상태 변경
+    const handleSideEffectsChange = useCallback((value) => {
+        setFormData(prev => ({
+            ...prev,
+            sideEffects: value
+        }));
+    }, []);
+
+    // 노트 상태 변경
+    const handleNoteChange = useCallback((value) => {
+        setFormData(prev => ({
+            ...prev,
+            note: value
+        }));
+    }, []);
+
+    // formData가 변경될 때마다 Context 업데이트
     useEffect(() => {
-        // 모든 필수 항목이 선택되었는지 확인
-        setIsValid(medication !== null && sideEffects !== null);
-    }, [medication, sideEffects]);
+        const updateContext = async () => {
+            if (formData.medication !== null) {
+                await updateDiagnosisData('medicationsDTO', {
+                    medicationTaken: formData.medication === 'complete',
+                    sideEffects: formData.sideEffects === 'yes' ? '있음' :
+                        formData.sideEffects === 'no' ? '없음' : '없음'
+                });
+            }
 
-    const handleSubmit = () => {
-        if (!isValid) return;
-        setIsLoading(true);
-        setTimeout(() => {
-            navigate('/diagnosis/result');
-        }, 2000);
-    };
+            await updateDiagnosisData('specialNotesDTO', {
+                specialNotes: formData.note || '-',
+                caregiverNotes: formData.note || '-'
+            });
+        };
+
+        updateContext();
+    }, [formData, updateDiagnosisData]);
+
+    const handleSubmit = useCallback(async () => {
+        if (!formData.medication || !formData.sideEffects) {
+            setError('모든 항목을 선택해주세요.');
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            setError('');
+            setIsSubmitting(true);
+
+            // 최종 데이터 업데이트
+            await updateDiagnosisData('medicationsDTO', {
+                medicationTaken: formData.medication === 'complete',
+                sideEffects: formData.sideEffects === 'yes' ? '있음' : '없음'
+            });
+
+            await updateDiagnosisData('specialNotesDTO', {
+                specialNotes: formData.note || '-',
+                caregiverNotes: formData.note || '-'
+            });
+
+            // API 요청
+            console.log('Submitting data...');
+            const result = await submitDiagnosisData();
+            console.log('Submit success:', result);
+
+            if (result) {
+                navigate('/diagnosis/loading');
+            }
+        } catch (error) {
+            console.error('Submit failed:', error);
+            setError('제출에 실패했습니다. 다시 시도해주세요.');
+            setIsSubmitting(false);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [formData, updateDiagnosisData, submitDiagnosisData, navigate]);
 
     if (isLoading) {
         return (
@@ -40,8 +115,7 @@ const FinalChecklist = () => {
         );
     }
 
-    // 가로 배치 라디오 버튼
-    const HorizontalRadioGroup = ({ options, value, onChange }) => (
+    const HorizontalRadioGroup = React.memo(({ options, value, onChange }) => (
         <div className="flex gap-3">
             {options.map((option) => (
                 <button
@@ -62,7 +136,9 @@ const FinalChecklist = () => {
                 </button>
             ))}
         </div>
-    );
+    ));
+
+    console.log("data", formData)
 
     return (
         <div className="min-h-screen bg-[#E9EEEA] flex flex-col">
@@ -73,47 +149,46 @@ const FinalChecklist = () => {
                     성원님의 기타 확인 사항을 체크해주세요.
                 </h2>
 
-                {/* 아침 약 복용 여부 */}
                 <div className="mb-8">
-                    <h3 className="text-gray-600 mb-3 ">아침 약 복용 여부</h3>
+                    <h3 className="text-gray-600 mb-3">아침 약 복용 여부</h3>
                     <HorizontalRadioGroup
                         options={[
                             {label: '미완료', value: 'incomplete'},
                             {label: '완료', value: 'complete'}
                         ]}
-                        value={medication}
-                        onChange={setMedication}
+                        value={formData.medication}
+                        onChange={handleMedicationChange}
                     />
                 </div>
 
-                {/* 복용하는 약 부작용 여부 */}
                 <div className="mb-8">
-                    <h3 className="text-gray-600 mb-3 ">복용하는 약 부작용 여부</h3>
+                    <h3 className="text-gray-600 mb-3">복용하는 약 부작용 여부</h3>
                     <HorizontalRadioGroup
                         options={[
                             {label: '있음', value: 'yes'},
                             {label: '없음', value: 'no'}
                         ]}
-                        value={sideEffects}
-                        onChange={setSideEffects}
-
+                        value={formData.sideEffects}
+                        onChange={handleSideEffectsChange}
                     />
                 </div>
 
-                {/* 특이사항 메모 */}
                 <div>
                     <h3 className="text-gray-600 mb-3">특이사항 및 간호기록</h3>
                     <textarea
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
+                        value={formData.note}
+                        onChange={(e) => handleNoteChange(e.target.value)}
                         placeholder="추가로 기록할 사항을 적어주세요."
                         className="w-full h-32 p-4 rounded-lg bg-[#F6FFF3] resize-none
                         focus:outline-none placeholder-gray-500"
                     />
                 </div>
+
+                {error && (
+                    <p className="text-red-500 mt-4 text-center">{error}</p>
+                )}
             </main>
 
-            {/* 하단 버튼 */}
             <div className="left-0 right-0 pb-20 bg-[#E9EEEA]">
                 <div className="flex gap-3">
                     <button
@@ -124,11 +199,7 @@ const FinalChecklist = () => {
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className={`flex-1 py-4 rounded-xl font-medium 
-                            ${isValid
-                            ? 'bg-[#496E1B] text-white cursor-pointer'
-                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        }`}
+                        className="flex-1 py-4 rounded-xl font-medium bg-[#496E1B] text-white cursor-pointer"
                     >
                         다음
                     </button>
@@ -136,6 +207,7 @@ const FinalChecklist = () => {
             </div>
         </div>
     );
+
 };
 
 export default FinalChecklist;
