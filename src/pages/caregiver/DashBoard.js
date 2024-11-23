@@ -6,7 +6,6 @@ import {
     Area,
     XAxis,
     YAxis,
-    CartesianGrid,
     Tooltip,
     ResponsiveContainer,
     ReferenceLine
@@ -16,83 +15,58 @@ const Dashboard = () => {
     const [checklistData, setChecklistData] = useState(null);
     const [selectedVital, setSelectedVital] = useState('bloodPressure');
     const [isLoading, setIsLoading] = useState(true);
-    const [patientInfo, setPatientInfo] = useState(null); // Added missing state variable
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
     const userInfo = getUserSession();
 
-    // 캐릭터 이미지 선택 함수
     const getCharacterImage = (status) => {
         const imageTypes = {
-            '좋음': [
-                'Excellent-green',
-                'Good-green',
-                'Neutral-green',
-                'Poor-green',
-                'Terrible-green'
-            ],
-            '보통': [
-                'Excellent-yellow',
-                'Good-yellow',
-                'Neutral-yellow',
-                'Poor-yellow',
-                'Terrible-yellow'
-            ],
-            '나쁨': [
-                'Excellent-red',
-                'Good-red',
-                'Neutral-red',
-                'Poor-red',
-                'Terrible-red'
-            ]
+            '좋음': 'Excellent-green',
+            '보통': 'Neutral-yellow',
+            '나쁨': 'Poor-red'
         };
+        return `/img/marimo/${imageTypes[status] || 'Neutral-yellow'}.png`;
+    };
 
-        const statusImages = imageTypes[status] || imageTypes['보통'];
-        const randomImage = statusImages[Math.floor(Math.random() * statusImages.length)];
-        return `/img/marimo/${randomImage}.png`;
+    const fetchData = async (date) => {
+        try {
+            setIsLoading(true);
+            const formattedDate = date.toISOString().split('T')[0];
+            const patientCode = userInfo?.patientInfo?.code || userInfo?.code;
+
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}/patient/daily-check/get/checklist?date=${formattedDate}&code=${patientCode}`,
+                { headers: { 'accept': '*/*' } }
+            );
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    setChecklistData(result.data);
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const now = new Date();
-                const offset = now.getTimezoneOffset() * 60000;
-                const today = new Date(now - offset).toISOString().split('T')[0];
-
-
-                const patientCode = userInfo?.patientInfo?.code || userInfo?.code;
-
-                const [checklistResponse, patientInfoResponse] = await Promise.all([
-                    fetch(
-                        `${process.env.REACT_APP_API_URL}/patient/daily-check/get/checklist?date=${today}&code=${patientCode}`,
-                        { headers: { 'accept': '*/*' } }
-                    ),
-                    fetch(
-                        `${process.env.REACT_APP_API_URL}/patient/info/get/code?code=${patientCode}`,
-                        { headers: { 'accept': '*/*' } }
-                    )
-                ]);
-
-                if (checklistResponse.ok && patientInfoResponse.ok) {
-                    const [checklistResult, patientInfoResult] = await Promise.all([
-                        checklistResponse.json(),
-                        patientInfoResponse.json()
-                    ]);
-                    setChecklistData(checklistResult.data);
-                    setPatientInfo(patientInfoResult.data);
-                }
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         if (userInfo) {
-            fetchData();
+            fetchData(selectedDate);
         }
     }, []);
 
-    const currentDate = new Date();
-    const formattedDate = `${currentDate.getMonth() + 1}월 ${currentDate.getDate()}일`;
+    const handleDateSelect = (date) => {
+        setSelectedDate(date);
+        setIsDatePickerOpen(false);
+        fetchData(date);
+    };
+
+    const formatDate = (date) => {
+        return `${date.getMonth() + 1}월 ${date.getDate()}일`;
+    };
 
     const vitalLabels = {
         bloodPressure: { name: '혈압', unit: 'mmHg' },
@@ -119,14 +93,6 @@ const Dashboard = () => {
         }
     };
 
-    const getStatusTranslation = {
-        SLEEPY: '졸림',
-        ANXIETY: '불안',
-        REDNESS: '발적',
-        MIGHT: '경미함',
-        LIMITED: '제한됨'
-    };
-
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
             return (
@@ -140,9 +106,17 @@ const Dashboard = () => {
         return null;
     };
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-gray-600">데이터를 불러오는 중입니다...</div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen" style={{background: '#F5F5F5'}}>
-            <header className="fixed top-0 left-0 right-0  z-10 p-4 text-center border-b" style={{background: '#F5F5F5'}}>
+            <header className="fixed top-0 left-0 right-0 z-10 p-4 text-center border-b" style={{background: '#F5F5F5'}}>
                 <h1 className="text-xl font-medium">대시보드</h1>
             </header>
 
@@ -157,13 +131,13 @@ const Dashboard = () => {
                 </div>
 
                 {/* AI 분석 결과 */}
-                <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+                <div className="bg-white rounded-2xl p-4 mb-8 shadow-sm">
                     <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm text-gray-600">{formattedDate}</span>
+                        <span className="text-sm text-gray-600">{formatDate(selectedDate)}</span>
                         <span className="bg-gray-100 px-2 py-0.5 rounded text-xs">AI</span>
                     </div>
                     <p className="text-sm">
-                        {checklistData?.dailyCheckList?.analysisData || '분석 결과를 불러오는 중입니다...'}
+                        {checklistData?.dailyCheckList?.analysisData || '분석 결과가 없습니다.'}
                     </p>
                 </div>
 
@@ -205,7 +179,7 @@ const Dashboard = () => {
                     <div className="h-48">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
-                                data={[]} // TODO: 실제 데이터 연결
+                                data={[]} 
                                 margin={{top: 10, right: 10, left: -20, bottom: 0}}
                             >
                                 <defs>
@@ -242,34 +216,22 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* 상태 정보 */}
-                <div className="bg-white rounded-2xl p-4 mb-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <h3 className="text-gray-600 mb-2">주요 질병</h3>
-                            <p>{patientInfo?.mainDisease || '--'}</p>
-                        </div>
-                        <div>
-                            <h3 className="text-gray-600 mb-2">기저질환</h3>
-                            <p>{patientInfo?.underlyingDisease || '--'}</p>
-                        </div>
-                    </div>
-                </div>
-
-
                 {/* 환자 분석 */}
                 <div className="bg-[#F6FFF3] rounded-2xl p-4 mb-4">
                     <h3 className="font-medium mb-3">환자 분석</h3>
                     <ul className="text-sm space-y-2 text-gray-600">
                         {checklistData?.dailyCheckList?.analysisFullData?.split('\n')?.map((line, index) => (
                             <li key={index}>• {line}</li>
-                        )) || <li>• 분석 데이터를 불러오는 중입니다...</li>}
+                        )) || <li>• 분석 데이터가 없습니다.</li>}
                     </ul>
                 </div>
 
                 {/* 하단 버튼 */}
                 <div className="flex gap-4">
-                    <button className="flex-1 py-4 bg-white rounded-xl text-[#496E1B]">
+                    <button 
+                        onClick={() => setIsDatePickerOpen(true)}
+                        className="flex-1 py-4 bg-white rounded-xl text-[#496E1B]"
+                    >
                         일일 진단 보기
                     </button>
                     <button className="flex-1 py-4 bg-white rounded-xl text-[#496E1B]">
@@ -277,6 +239,29 @@ const Dashboard = () => {
                     </button>
                 </div>
             </main>
+
+            {/* 날짜 선택 모달 */}
+            {isDatePickerOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-2xl w-[90%] max-w-md">
+                        <h3 className="text-lg font-medium mb-4">날짜 선택</h3>
+                        <input
+                            type="date"
+                            value={selectedDate.toISOString().split('T')[0]}
+                            onChange={(e) => {
+                                handleDateSelect(new Date(e.target.value));
+                            }}
+                            className="w-full p-3 border rounded-xl mb-4 focus:outline-none focus:border-[#496E1B]"
+                        />
+                        <button
+                            onClick={() => setIsDatePickerOpen(false)}
+                            className="w-full py-3 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                        >
+                            취소
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <Navigate/>
         </div>

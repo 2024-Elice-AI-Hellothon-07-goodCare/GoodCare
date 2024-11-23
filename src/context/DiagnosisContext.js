@@ -18,20 +18,20 @@ export const DiagnosisProvider = ({ children }) => {
             respirationRate: 0
         },
         consciousnessDTO: {
-            consciousnessLevel: 'CLEAR',  // 기본값 설정
-            moodBehaviour: 'SAME_AS_USUAL'  // 기본값 설정
+            consciousnessLevel: 'CLEAR',
+            moodBehaviour: 'SAME_AS_USUAL'
         },
         physicalStatusDTO: {
-            skinCondition: 'NORMAL',  // 기본값 설정
-            painLevel: 'NONE',  // 기본값 설정
-            mobility: 'NORMAL'  // 기본값 설정
+            skinCondition: 'NORMAL',
+            painLevel: 'NONE',
+            mobility: 'NORMAL'
         },
         medicationsDTO: {
             medicationTaken: false,
-            sideEffects: '없음'  // 기본값 설정
+            sideEffects: '없음'
         },
         specialNotesDTO: {
-            specialNotes: '-',  // 기본값 설정
+            specialNotes: '-',
         }
     });
 
@@ -50,7 +50,6 @@ export const DiagnosisProvider = ({ children }) => {
     }, []);
 
     const prepareSubmitData = useCallback(() => {
-        // 제출 전 데이터 검증 및 정리
         const preparedData = {
             ...diagnosisData,
             specialNotesDTO: {
@@ -70,7 +69,7 @@ export const DiagnosisProvider = ({ children }) => {
 
     const submitDiagnosisData = useCallback(async () => {
         try {
-            const patientCode = userInfo?.patientInfo?.code;
+            const patientCode = userInfo?.patientInfo?.code || userInfo?.code;
             if (!patientCode) {
                 throw new Error('Patient code not available');
             }
@@ -105,10 +104,49 @@ export const DiagnosisProvider = ({ children }) => {
         }
     }, [userInfo, prepareSubmitData]);
 
+    const getAIAnalysis = useCallback(async () => {
+        try {
+            const today = new Date().toLocaleDateString('ko-KR', {
+                timeZone: 'Asia/Seoul',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).replace(/\. /g, '-').replace('.', '');            const patientCode = userInfo?.patientInfo?.code || userInfo?.code;
+
+            if (!patientCode) {
+                throw new Error('Patient code not available');
+            }
+
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}/patient/daily-check/get/ai-analysis?date=${today}&code=${patientCode}`,
+                { headers: { 'accept': '*/*' } }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                console.error('AI Analysis API Error:', errorData);
+                throw new Error(errorData?.message || 'Failed to get AI analysis');
+            }
+
+            const result = await response.json();
+            console.log('AI Analysis success:', result);
+
+            if (result.success) {
+                return result.data;
+            } else {
+                throw new Error(result.message || 'Failed to get AI analysis');
+            }
+        } catch (error) {
+            console.error('Error getting AI analysis:', error);
+            throw error;
+        }
+    }, [userInfo]);
+
     const contextValue = {
         diagnosisData,
         updateDiagnosisData,
-        submitDiagnosisData
+        submitDiagnosisData,
+        getAIAnalysis
     };
 
     console.log('Current diagnosis data:', diagnosisData);

@@ -27,7 +27,6 @@ const Navigation = () => {
     const isRoutinePath = currentPath.includes('/routine');
     const isHealthPath = currentPath.includes('/health');
     const isCommunityPath = currentPath.includes('/community');
-    const isMenuPath = currentPath.includes('/menu');
 
     return (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-green-900 rounded-full p-2 flex items-center gap-2">
@@ -51,14 +50,7 @@ const Navigation = () => {
                 active={isCommunityPath}
                 onClick={() => handleNavigation('/community')}
             />
-            <div className={`w-10 h-10 flex items-center justify-center rounded-full cursor-pointer
-                ${isMenuPath ? 'bg-white' : 'bg-green-400'}`}
-                 onClick={() => handleNavigation('/menu')}>
-                <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center gap-1">
-                    <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
-                    <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
-                </div>
-            </div>
+
         </div>
     );
 };

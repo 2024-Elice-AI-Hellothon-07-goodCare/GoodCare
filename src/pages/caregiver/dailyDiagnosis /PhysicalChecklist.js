@@ -124,7 +124,7 @@ const PhysicalChecklist = () => {
 
             <main className="flex-1 px-4 pt-20 pb-24">
                 <h2 className="text-xl font-bold mb-8">
-                    성원님의 신체 상태를 체크해주세요.
+                신체 상태를 체크해주세요.
                 </h2>
 
                 <StatusSection

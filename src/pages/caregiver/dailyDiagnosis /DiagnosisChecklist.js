@@ -116,7 +116,7 @@ const DiagnosisChecklist = () => {
 
             <main className="flex-1 px-4 pt-20 pb-24">
                 <h2 className="text-xl font-bold mb-8">
-                   님의 의식과 정신 상태를 체크해주세요.
+                   의식과 정신 상태를 체크해주세요.
                 </h2>
 
                 {/* 의식 수준 섹션 */}

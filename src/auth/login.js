@@ -173,7 +173,7 @@ const Login = () => {
             <img
                 src="/img/disoStart.png"
                 alt="Character"
-                className="w-32 h-32 mb-12"
+                className="w-42 h-52 mb-12"
             />
 
             {/* 로그인 폼 */}

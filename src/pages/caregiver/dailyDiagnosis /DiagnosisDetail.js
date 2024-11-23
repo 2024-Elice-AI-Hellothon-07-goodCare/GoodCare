@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Loading from "../../../common/component/Loading";
 import { useDiagnosis } from '../../../context/DiagnosisContext';
+import {getUserSession} from "../../../utils/auth";
 
 const DiagnosisDetail = () => {
     const navigate = useNavigate();
     const [checklistData, setChecklistData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const userInfo = getUserSession();
+
 
     // 상태 레이블 매핑
     const statusLabels = {
@@ -45,9 +48,15 @@ const DiagnosisDetail = () => {
     useEffect(() => {
         const fetchChecklistData = async () => {
             try {
-                const today = new Date().toISOString().split('T')[0];
+                const today = new Date().toLocaleDateString('ko-KR', {
+                    timeZone: 'Asia/Seoul',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).replace(/\. /g, '-').replace('.', '');
+                const patientCode = userInfo?.patientInfo?.code || userInfo?.code;
                 const response = await fetch(
-                    `${process.env.REACT_APP_API_URL}/patient/daily-check/get/checklist?date=${today}&code=964F19`,
+                    `${process.env.REACT_APP_API_URL}/patient/daily-check/get/checklist?date=${today}&code=${patientCode}`,
                     {
                         headers: {
                             'accept': '*/*'

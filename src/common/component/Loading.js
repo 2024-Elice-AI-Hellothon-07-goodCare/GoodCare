@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDiagnosis } from '../../context/DiagnosisContext';  // 경로는 실제 구조에 맞게 수정
 
 const CHARACTER_STATES = [
     'Excellent',
@@ -22,6 +23,7 @@ const Loading = ({
                      className = ''
                  }) => {
     const navigate = useNavigate();
+    const { getAIAnalysis } = useDiagnosis();
     const [currentImage, setCurrentImage] = useState('');
     const [displayMessage, setDisplayMessage] = useState(message);
     const [showFinalState, setShowFinalState] = useState(false);
@@ -32,23 +34,56 @@ const Loading = ({
         );
 
         let count = 0;
-        const maxCount = 10; // 이미지 변경 횟수 설정
+        const maxCount = 10;
+        let interval;
 
-        const interval = setInterval(() => {
-            if (count < maxCount) {
-                const randomIndex = Math.floor(Math.random() * allCombinations.length);
-                setCurrentImage(allCombinations[randomIndex]);
-                count++;
-            } else {
+        const processAnalysis = async () => {
+            try {
+                // 한국 시간으로 오늘 날짜 가져오기
+                const today = new Date().toLocaleDateString('ko-KR', {
+                    timeZone: 'Asia/Seoul',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).replace(/\. /g, '-').replace('.', '');
+
+                // AI 분석 결과 가져오기
+                const analysisResult = await getAIAnalysis();
+
+                // 로딩 애니메이션 완료
                 clearInterval(interval);
                 setCurrentImage('/img/marimo/Excellent-green.png');
                 setDisplayMessage('결과 분석 완료!');
                 setShowFinalState(true);
 
-                // 최종 상태를 보여준 후 1.5초 뒤에 페이지 이동
+                // 분석 결과와 함께 결과 페이지로 이동
                 setTimeout(() => {
-                    navigate('/diagnosis/result');
+                    navigate('/diagnosis/result', {
+                        state: { analysisData: analysisResult,
+                            date: today
+                        }
+                    });
                 }, 1500);
+            } catch (error) {
+                console.error('Analysis failed:', error);
+                setDisplayMessage('분석 중 오류가 발생했습니다');
+                setTimeout(() => {
+                    navigate('/diagnosis/result', {
+                        state: { error: '분석 중 오류가 발생했습니다.' }
+                    });
+                }, 1500);
+            }
+        };
+
+        // 로딩 애니메이션 시작
+        interval = setInterval(() => {
+            if (count < maxCount) {
+                const randomIndex = Math.floor(Math.random() * allCombinations.length);
+                setCurrentImage(allCombinations[randomIndex]);
+                count++;
+            } else {
+                // maxCount에 도달하면 AI 분석 시작
+                processAnalysis();
             }
         }, 300);
 
@@ -58,7 +93,7 @@ const Loading = ({
         return () => {
             clearInterval(interval);
         };
-    }, [navigate]);
+    }, [navigate, getAIAnalysis]);
 
     return (
         <div className={`min-h-screen bg-[#E9EEEA] ${className}`}>

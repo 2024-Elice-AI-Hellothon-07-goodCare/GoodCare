@@ -16,6 +16,15 @@ const FinalChecklist = () => {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // 한국 시간으로 오늘 날짜 가져오기
+    const today = new Date().toLocaleDateString('ko-KR', {
+        timeZone: 'Asia/Seoul',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).replace(/\. /g, '-').replace('.', '');
+
+
     // 약물 복용 상태 변경
     const handleMedicationChange = useCallback((value) => {
         setFormData(prev => ({
@@ -43,6 +52,10 @@ const FinalChecklist = () => {
     // formData가 변경될 때마다 Context 업데이트
     useEffect(() => {
         const updateContext = async () => {
+            await updateDiagnosisData('dailyCheckListDTO', {
+                createdAt: today  // 오늘 날짜로 업데이트
+            });
+
             if (formData.medication !== null) {
                 await updateDiagnosisData('medicationsDTO', {
                     medicationTaken: formData.medication === 'complete',
@@ -58,7 +71,7 @@ const FinalChecklist = () => {
         };
 
         updateContext();
-    }, [formData, updateDiagnosisData]);
+    }, [formData, updateDiagnosisData, today]);
 
     const handleSubmit = useCallback(async () => {
         if (!formData.medication || !formData.sideEffects) {
@@ -71,7 +84,11 @@ const FinalChecklist = () => {
             setError('');
             setIsSubmitting(true);
 
-            // 최종 데이터 업데이트
+            // 최종 데이터 업데이트에 날짜 포함
+            await updateDiagnosisData('dailyCheckListDTO', {
+                createdAt: today
+            });
+
             await updateDiagnosisData('medicationsDTO', {
                 medicationTaken: formData.medication === 'complete',
                 sideEffects: formData.sideEffects === 'yes' ? '있음' : '없음'
@@ -82,13 +99,15 @@ const FinalChecklist = () => {
                 caregiverNotes: formData.note || '-'
             });
 
-            // API 요청
             console.log('Submitting data...');
             const result = await submitDiagnosisData();
             console.log('Submit success:', result);
 
             if (result) {
-                navigate('/diagnosis/loading');
+                // 날짜 정보도 함께 전달
+                navigate('/diagnosis/loading', {
+                    state: { date: today }
+                });
             }
         } catch (error) {
             console.error('Submit failed:', error);
@@ -97,7 +116,7 @@ const FinalChecklist = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [formData, updateDiagnosisData, submitDiagnosisData, navigate]);
+    }, [formData, updateDiagnosisData, submitDiagnosisData, navigate, today]);
 
     if (isLoading) {
         return (
@@ -146,7 +165,7 @@ const FinalChecklist = () => {
 
             <main className="flex-1 px-4 pt-20 pb-24">
                 <h2 className="text-xl font-bold mb-8">
-                    성원님의 기타 확인 사항을 체크해주세요.
+                  기타 확인 사항을 체크해주세요.
                 </h2>
 
                 <div className="mb-8">
