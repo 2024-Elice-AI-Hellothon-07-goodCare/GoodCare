@@ -20,6 +20,8 @@ import Loading from "./common/component/Loading";
 import Home from "./pages/caregiver/Home";
 import DashBoard from "./pages/caregiver/DashBoard";
 import Register from "./auth/join";
+import MyInfo from "./pages/caregiver/MyInfo";
+import StatusCheck from "./pages/caregiver/StatusCheck";
 
 const App = () => {
     return (
@@ -29,8 +31,9 @@ const App = () => {
                 <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/home" element={<Home/>}/>
-                // App.js
                 <Route path="/register" element={<Register />} />
+                <Route path="/myinfo" element={<MyInfo/>}/>
+                <Route path="/help" element={<StatusCheck/>}/>
 
 
                 {/* 진단 관련 라우트 */}

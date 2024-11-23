@@ -16,9 +16,15 @@ const Home = () => {
     const userInfo = getUserSession();
     const [characterImage, setCharacterImage] = useState('');
     const navigate = useNavigate();  // useNavigate 훅 사용
+    const [routines, setRoutines] = useState([]);
+
 
     const handleAddRoutine = () => {
         navigate('/routine/add');
+    };
+
+    const handleMarimoClick = () => {
+        navigate('/help'); // 상태 확인 페이지로 이동
     };
 
 
@@ -101,7 +107,7 @@ const Home = () => {
         };
 
         fetchChecklistData();
-    }, [userInfo]);
+    }, []);
 
     const healthMetrics = checklistData?.vitalSigns ? [
         {
@@ -134,26 +140,66 @@ const Home = () => {
         }
     ] : [];
 
-    const routines = [
-        {
-            title: '아침, 점심, 저녁',
-            subtitle: '약 복용 확인',
-            time: '11:30, 15:30, 18:30',
-            type: '매일'
-        },
-        {
-            title: '재활운동 하기',
-            subtitle: '매주 월, 수, 금',
-            time: '',
-            type: '매주'
-        },
-        {
-            title: '병원 방문',
-            subtitle: '11. 18 (금)',
-            time: '13:00',
-            type: ''
-        }
-    ];
+    useEffect(() => {
+        const fetchRoutines = async () => {
+            try {
+                const userInfo = getUserSession();
+                const patientCode = userInfo?.patientInfo?.code || userInfo?.code;
+
+                const response = await fetch(
+                    `${process.env.REACT_APP_API_URL}/caregiver/routine/get?code=${patientCode}`,
+                    { headers: { 'accept': '*/*' } }
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch routines');
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    setRoutines(result.data.map(routine => ({
+                        id: routine.caregiverRoutine.id,
+                        title: decodeURIComponent(routine.caregiverRoutine.name),
+                        subtitle: routine.caregiverRoutineDayOfWeekDTO.daysOfWeek.length > 0
+                            ? `매주 ${getDayOfWeekKorean(routine.caregiverRoutineDayOfWeekDTO.daysOfWeek)}`
+                            : `${routine.caregiverRoutine.startDate} ~ ${routine.caregiverRoutine.endDate}`,
+                        time: getFormattedTime(routine.caregiverRoutineStartTimeDTO.startTime),
+                        type: routine.caregiverRoutine.frequencyType === 'SPECIFIC' ? '특정 기간' : '매주',
+                        isImportant: routine.caregiverRoutine.isImportant
+                    })));
+                }
+            } catch (error) {
+                console.error('Error fetching routines:', error);
+            }
+        };
+
+        fetchRoutines();
+    }, []);
+
+// 요일 변환 유틸 함수
+    const getDayOfWeekKorean = (daysOfWeek) => {
+        const dayMap = {
+            'MONDAY': '월',
+            'TUESDAY': '화',
+            'WEDNESDAY': '수',
+            'THURSDAY': '목',
+            'FRIDAY': '금',
+            'SATURDAY': '토',
+            'SUNDAY': '일'
+        };
+        return daysOfWeek.map(day => dayMap[day]).join(', ');
+    };
+
+    // 시간 포맷팅 함수
+    const getFormattedTime = (timeArray) => {
+        if (!timeArray || timeArray.length === 0) return '';
+        return timeArray.map(time =>
+            `${String(time.hour).padStart(2, '0')}:${String(time.minute).padStart(2, '0')}`
+        ).join(', ');
+    };
+
+
 
     return (
         <div className="min-h-screen pb-24" style={{background: '#F5F5F5'}}>
@@ -170,17 +216,17 @@ const Home = () => {
                         </div>
                         <p className="mt-2">
                             {isLoading ? "데이터를 불러오는 중입니다..." :
-                             error ? "데이터를 불러오지 못했습니다." :
-                             checklistData?.dailyCheckList?.analysisData || "분석 데이터가 없습니다."}
+                                error ? "데이터를 불러오지 못했습니다." :
+                                    checklistData?.dailyCheckList?.analysisData || "분석 데이터가 없습니다."}
                         </p>
                     </div>
 
                     <div className="w-1/3 flex justify-end">
-
                         <img
                             src={characterImage || getCharacterImage('보통')}
                             alt="Health Character"
-                            className="w-25 h-35"
+                            className="w-25 h-35 cursor-pointer" // cursor-pointer 추가
+                            onClick={handleMarimoClick} // 클릭 이벤트 추가
                         />
                     </div>
                 </div>

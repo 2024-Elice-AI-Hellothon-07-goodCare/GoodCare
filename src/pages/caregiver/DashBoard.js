@@ -15,8 +15,11 @@ const Dashboard = () => {
     const [checklistData, setChecklistData] = useState(null);
     const [selectedVital, setSelectedVital] = useState('bloodPressure');
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(() => {
+        const now = new Date();
+        const seoulTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
+        return seoulTime;
+    });    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
     const userInfo = getUserSession();
 
     const getCharacterImage = (status) => {
@@ -56,12 +59,22 @@ const Dashboard = () => {
         if (userInfo) {
             fetchData(selectedDate);
         }
-    }, []);
+    }, [selectedDate]); // selectedDate를 의존성 배열에 추가
 
     const handleDateSelect = (date) => {
-        setSelectedDate(date);
+        const now = new Date();
+        const seoulTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
+        setSelectedDate(seoulTime);
         setIsDatePickerOpen(false);
         fetchData(date);
+    };
+
+    const handleDailyCheckClick = () => {
+        // 서울 시간으로 현재 날짜 설정
+        const now = new Date();
+        const seoulTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
+        setSelectedDate(seoulTime);
+        setIsDatePickerOpen(true);
     };
 
     const formatDate = (date) => {
@@ -179,7 +192,7 @@ const Dashboard = () => {
                     <div className="h-48">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
-                                data={[]} 
+                                data={[]}
                                 margin={{top: 10, right: 10, left: -20, bottom: 0}}
                             >
                                 <defs>
@@ -226,10 +239,10 @@ const Dashboard = () => {
                     </ul>
                 </div>
 
-                {/* 하단 버튼 */}
+                {/* 하단 버튼 섹션 */}
                 <div className="flex gap-4">
-                    <button 
-                        onClick={() => setIsDatePickerOpen(true)}
+                    <button
+                        onClick={handleDailyCheckClick}
                         className="flex-1 py-4 bg-white rounded-xl text-[#496E1B]"
                     >
                         일일 진단 보기
@@ -238,34 +251,34 @@ const Dashboard = () => {
                         병원에 전송하기
                     </button>
                 </div>
-            </main>
 
-            {/* 날짜 선택 모달 */}
-            {isDatePickerOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-2xl w-[90%] max-w-md">
-                        <h3 className="text-lg font-medium mb-4">날짜 선택</h3>
-                        <input
-                            type="date"
-                            value={selectedDate.toISOString().split('T')[0]}
-                            onChange={(e) => {
-                                handleDateSelect(new Date(e.target.value));
-                            }}
-                            className="w-full p-3 border rounded-xl mb-4 focus:outline-none focus:border-[#496E1B]"
-                        />
-                        <button
-                            onClick={() => setIsDatePickerOpen(false)}
-                            className="w-full py-3 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
-                        >
-                            취소
-                        </button>
+                {/* 날짜 선택 모달 */}
+                {isDatePickerOpen && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-2xl w-[90%] max-w-md">
+                            <h3 className="text-lg font-medium mb-4">날짜 선택</h3>
+                            <input
+                                type="date"
+                                value={selectedDate.toISOString().split('T')[0]}
+                                onChange={(e) => {
+                                    handleDateSelect(new Date(e.target.value));
+                                }}
+                                className="w-full p-3 border rounded-xl mb-4 focus:outline-none focus:border-[#496E1B]"
+                            />
+                            <button
+                                onClick={() => setIsDatePickerOpen(false)}
+                                className="w-full py-3 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                            >
+                                취소
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            <Navigate/>
+                <Navigate/>
+            </main>
         </div>
-    );
+);
 };
 
 export default Dashboard;

@@ -48,7 +48,7 @@ const Navigation = () => {
             <NavIcon
                 Icon={Users}
                 active={isCommunityPath}
-                onClick={() => handleNavigation('/community')}
+                onClick={() => handleNavigation('/myinfo')}
             />
 
         </div>
