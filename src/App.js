@@ -13,6 +13,8 @@ import RoutineConfirmation from "./pages/alert/RoutineConfirmation";
 import RoutineCancelConfirm from "./pages/alert/RoutineCancelConfirm";
 import RoutineMain from "./pages/caregiver/routine/RoutineMain";
 import RoutineAdd from "./pages/caregiver/routine/RoutineAdd";
+import DiagnosisResult from "./pages/caregiver/dailyDiagnosis /DiagnosisResult";
+import DiagnosisDetail from "./pages/caregiver/dailyDiagnosis /DiagnosisDetail";
 
 const App = () => {
     return (
@@ -24,6 +26,8 @@ const App = () => {
                 <Route path="/diagnosis/checklist" element={<DiagnosisChecklist />} />
                 <Route path="/diagnosis/physical" element={<PhysicalChecklist />} />
                 <Route path="/diagnosis/final" element={<FinalChecklist />} />
+                <Route path="/diagnosis/result" element={<DiagnosisResult />} />
+                <Route path="/diagnosis/detail" element={<DiagnosisDetail />} />
                 <Route path="/alert" element={<AlertDemo />} /> {/* 임시로 알럿창 확인을 위한 라우트 */}
                 <Route path="/alert/situation" element={<SituationCheck />} />
                 <Route path="/alert/details" element={<SituationDetails />} />
