@@ -17,6 +17,9 @@ import DiagnosisDetail from "./pages/caregiver/dailyDiagnosis /DiagnosisDetail";
 import Login from "./auth/login";
 import {DiagnosisProvider} from "./context/DiagnosisContext";
 import Loading from "./common/component/Loading";
+import Home from "./pages/caregiver/Home";
+import DashBoard from "./pages/caregiver/DashBoard";
+import Register from "./auth/join";
 
 const App = () => {
     return (
@@ -25,6 +28,9 @@ const App = () => {
 
                 <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/home" element={<Home/>}/>
+                // App.js
+                <Route path="/register" element={<Register />} />
 
 
                 {/* 진단 관련 라우트 */}
@@ -51,6 +57,8 @@ const App = () => {
                 <Route path="/alert/cancel-confirm" element={<RoutineCancelConfirm />} />
                 <Route path="/routine/routine-main" element={<RoutineMain />} />
                 <Route path="/routine/add" element={<RoutineAdd/>} />
+
+                <Route path="/dashboard/health" element={<DashBoard/>}/>
 
 
 

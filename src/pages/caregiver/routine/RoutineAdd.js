@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Heart, X, Plus, ChevronLeft, Calendar } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import {getUserSession} from "../../../utils/auth";
 
 const RoutineAdd = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const selectedDate = location.state?.selectedDate ? new Date(location.state.selectedDate) : new Date();
+    const userInfo = getUserSession();
 
     const formatDate = (date) => {
         const days = ['일', '월', '화', '수', '목', '금', '토'];
@@ -27,6 +29,87 @@ const RoutineAdd = () => {
     const [isAllDay, setIsAllDay] = useState(false);
 
     const days = ['일', '월', '화', '수', '목', '금', '토'];
+
+    // 저장 함수 추가
+    const handleSave = async () => {
+        try {
+            // 시간 데이터 변환
+            const timeList = times.map(time => {
+                const [period, timeStr] = time.split(' ');
+                const [hour, minute] = timeStr.split(':').map(Number);
+                let adjustedHour = hour;
+
+                // 오후인 경우 12를 더함 (12시는 제외)
+                if (period === '오후' && hour !== 12) {
+                    adjustedHour += 12;
+                }
+                // 오전 12시는 0시로 변환
+                else if (period === '오전' && hour === 12) {
+                    adjustedHour = 0;
+                }
+
+                return {
+                    hour: adjustedHour,
+                    minute: minute || 0,
+                    second: 0,
+                    nano: 0
+                };
+            });
+
+            // 요일 데이터 변환 (한글 -> 영문)
+            const dayMapping = {
+                '일': 'SUNDAY',
+                '월': 'MONDAY',
+                '화': 'TUESDAY',
+                '수': 'WEDNESDAY',
+                '목': 'THURSDAY',
+                '금': 'FRIDAY',
+                '토': 'SATURDAY'
+            };
+
+            const mappedDays = selectedDays.map(day => dayMapping[day]);
+
+            const payload = {
+                caregiverRoutineDTO: {
+                    caregiverCode: userInfo.code,
+                    name: routineName,
+                    isImportant: isFavorite,
+                    frequencyType: isAllDay ? "ALLDAY" : "SPECIFIC",
+                    startDate: startDate,
+                    endDate: endDate || startDate, // endDate가 없으면 startDate와 동일하게
+                    repeatForever: !endDate // endDate가 없으면 무한반복으로 간주
+                },
+                caregiverRoutineDayOfWeekDTO: {
+                    daysOfWeek: mappedDays
+                },
+                caregiverRoutineStartTimeDTO: {
+                    startTime: isAllDay ? [] : timeList
+                }
+            };
+
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/caregiver/routine/save`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': '*/*'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('루틴이 성공적으로 저장되었습니다.');
+                // routine-main으로 이동
+                navigate('/routine/routine-main');  // 여기를 수정
+            } else {
+                alert(result.message || '저장에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Error saving routine:', error);
+            alert('루틴 저장 중 오류가 발생했습니다.');
+        }
+    };
 
     const handleBack = () => {
         navigate(-1);
@@ -208,7 +291,10 @@ const RoutineAdd = () => {
                 >
                     취소
                 </button>
-                <button className="flex-1 py-3 rounded-xl bg-green-800 text-white">
+                <button
+                    onClick={handleSave}
+                    className="flex-1 py-3 rounded-xl bg-green-800 text-white"
+                >
                     저장
                 </button>
             </div>

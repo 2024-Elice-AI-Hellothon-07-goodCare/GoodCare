@@ -149,78 +149,107 @@ const CustomCalendar = ({ view, routines, selectedDate, onDateSelect }) => {
                         prev2Label={null}
                         next2Label={null}
                         minDetail="month"
-                        navigationLabel={({ date }) => (
+                        navigationLabel={({date}) => (
                             <div style={{background: '#E4EFE0'}} className="w-full py-4">
                                 {`${date.getFullYear()}년 ${date.getMonth() + 1}월`}
                             </div>
                         )}
-                        tileContent={({ date }) => {
+                        tileContent={({date}) => {
                             const status = checkRoutineStatus(date);
                             return (
-                                <div className="flex gap-2 justify-center text-xs">
-                                    {status.completed > 0 && (
-                                        <span className="text-green-500">✓ {status.completed}</span>
-                                    )}
-                                    {status.failed > 0 && (
-                                        <span className="text-red-500">✗ {status.failed}</span>
-                                    )}
+                                <div className="flex flex-col items-center w-full">
+                                    {/* 상태 표시를 위한 고정 높이의 div */}
+                                    <div className="h-4 flex gap-2 justify-center text-xs mt-1">
+                                        {status.completed > 0 && (
+                                            <span className="text-green-500">✓ {status.completed}</span>
+                                        )}
+                                        {status.failed > 0 && (
+                                            <span className="text-red-500">✗ {status.failed}</span>
+                                        )}
+                                    </div>
                                 </div>
                             );
                         }}
-                        tileClassName={({ date }) =>
+                        tileClassName={({date}) =>
                             `flex flex-col justify-center items-center h-11 hover:bg-green-100 rounded-lg cursor-pointer
                             ${date.toDateString() === selectedDate?.toDateString() ? 'bg-green-200' : ''}
                             `
                         }
                     />
                 ) : (
-                    <WeekView />
+                    <WeekView/>
                 )}
             </div>
 
             <style jsx global>{`
                 .react-calendar {
                     background: transparent;
+                    width: 100% !important;
+                    padding: 12px;
                 }
 
                 .react-calendar__navigation {
-                    @apply mb-0;
+                    @apply mb-2;
                     background: #E4EFE0;
+                    height: 48px;
+                    display: flex;
+                    margin-bottom: 0;
                 }
 
                 .react-calendar__navigation button {
-                    @apply text-base;
+                    @apply text-lg font-medium;
                     background: #E4EFE0;
+                    min-width: 36px;
+                    padding: 6px;
                 }
 
-                .react-calendar__navigation {
-                    @apply p-4 rounded-t-2xl;
+                .react-calendar__month-view__weekdays {
+                    @apply text-sm;
+                    padding: 4px 0;
                 }
 
                 .react-calendar__month-view__weekdays__weekday {
-                    @apply text-center font-normal no-underline;
+                    @apply text-center font-normal;
+                    padding: 4px;
                 }
 
                 .react-calendar__month-view__weekdays__weekday abbr {
-                    @apply no-underline;
+                    @apply no-underline text-sm;
                     text-decoration: none;
                 }
 
-                .react-calendar__month-view__days__day--weekend {
-                    @apply text-black;
+                .react-calendar__tile {
+                    background: #E4EFE0;
+                    height: 60px !important;
+                    padding: 4px !important;
+                    font-size: 1rem !important;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    position: relative;
                 }
 
-                .react-calendar__month-view__days__day--neighboringMonth {
-                    background: #E4EFE0;
+                .react-calendar__tile > abbr {
+                    position: absolute;
+                    top: 8px;
+                }
+
+                .react-calendar__tile .flex.flex-col {
+                    margin-top: 24px;
+                    width: 100%;
+                }
+
+                .react-calendar__tile--now {
+                    @apply bg-green-100;
                 }
 
                 .react-calendar__tile--active {
-                    @apply bg-green-100 rounded-lg;
+                    @apply bg-green-200 rounded-lg;
                 }
 
                 .react-calendar__tile--active:enabled:hover,
                 .react-calendar__tile--active:enabled:focus {
-                    @apply bg-green-200;
+                    @apply bg-green-300;
                 }
 
                 .react-calendar__navigation button:enabled:hover,
@@ -233,8 +262,76 @@ const CustomCalendar = ({ view, routines, selectedDate, onDateSelect }) => {
                     @apply bg-green-100;
                 }
 
-                .react-calendar__tile {
+                .react-calendar__month-view__days__day--weekend {
+                    color: inherit;
+                }
+
+                .react-calendar__month-view__days__day:nth-child(7n+1) {
+                    color: #e00000; /* 일요일 빨간색 */
+                }
+
+                .react-calendar__month-view__days__day:nth-child(7n) {
+                    color: #0066cc; /* 토요일 파란색 */
+                }
+
+                .react-calendar__tile .flex.gap-2 {
+                    margin-top: 2px;
+                    font-size: 0.75rem;
+                    height: 16px; /* 상태 표시 영역 높이 고정 */
+                    display: flex;
+                    align-items: center;
+                }
+
+                .react-calendar__month-view__days__day--neighboringMonth {
                     background: #E4EFE0;
+                    color: #999 !important;
+                }
+
+                .react-calendar__navigation__label {
+                    font-weight: bold;
+                    font-size: 1.1rem;
+                }
+
+                .react-calendar__navigation__arrow {
+                    font-size: 1.4rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .react-calendar__month-view__weekdays__weekday {
+                    text-align: center;
+                    padding: 8px 0;
+                }
+
+                .react-calendar__month-view__weekdays__weekday:nth-child(1) abbr {
+                    color: #e00000;
+                }
+
+                .react-calendar__month-view__weekdays__weekday:nth-child(7) abbr {
+                    color: #0066cc;
+                }
+
+                /* 각 날짜 타일 내부의 상태 표시 레이아웃 */
+                .react-calendar__tile .status-indicators {
+                    position: absolute;
+                    bottom: 4px;
+                    left: 0;
+                    right: 0;
+                    display: flex;
+                    justify-content: center;
+                    gap: 4px;
+                }
+
+                /* 상태 표시 아이콘 스타일 */
+                .status-complete {
+                    color: #22C55E;
+                    font-size: 0.75rem;
+                }
+
+                .status-fail {
+                    color: #EF4444;
+                    font-size: 0.75rem;
                 }
             `}</style>
         </div>

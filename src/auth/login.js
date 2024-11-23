@@ -1,4 +1,3 @@
-// src/pages/Login.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {getPatientSession, setUserSession} from "../utils/auth";
@@ -11,8 +10,33 @@ const Login = () => {
     const [name, setName] = useState('');
     const [error, setError] = useState('');
 
+    const checkDailyStatus = async (patientCode) => {
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}/patient/daily-check/check-today?code=${patientCode}`,
+                {
+                    headers: {
+                        'accept': '*/*'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to check daily status');
+            }
+
+            const result = await response.json();
+            return result.success === false && result.status === 'COMMON409';
+        } catch (error) {
+            console.error('Error checking daily status:', error);
+            return false;
+        }
+    };
+
     const handleLogin = async (e) => {
         e.preventDefault();
+        setError('');
+
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}/login/`, {
                 method: 'POST',
@@ -27,28 +51,50 @@ const Login = () => {
                 }),
             });
 
-            if (response.ok) {
-                const responseData = await response.json();
-                console.log("?", getPatientSession())
+            if (!response.ok) {
+                setError('로그인에 실패했습니다. 다시 시도해주세요.');
+                return;
+            }
 
-                // 응답 구조 변경에 따른 수정
-                const userData = responseData.data.object;
+            const responseData = await response.json();
+            const userData = responseData.data.object;
 
-                const sessionData = {
-                    userType,
-                    code: userData.code,
-                    name: userData.name,
-                    patientInfo: userType === '간병인' ? {
-                        code: userData.patientCode
-                    } : null
-                };
+            const sessionData = {
+                userType,
+                code: userData.code,
+                name: userData.name,
+                patientInfo: userType === '간병인' ? {
+                    code: userData.patientCode
+                } : null
+            };
 
-                setUserSession(sessionData);
+            setUserSession(sessionData);
 
+            // 사용자 타입에 따른 라우팅
+            if (userType === '간병인') {
+                // 한 번의 API 호출로 체크
+                const dailyCheckResponse = await fetch(
+                    `${process.env.REACT_APP_API_URL}/patient/daily-check/check-today?code=${userData.patientCode}`,
+                    {
+                        headers: { 'accept': '*/*' }
+                    }
+                );
+
+                if (!dailyCheckResponse.ok) {
+                    navigate('/diagnosis/start');
+                    return;
+                }
+
+                const dailyCheckResult = await dailyCheckResponse.json();
+                // false이고 409 상태일 때만 home으로, 나머지는 diagnosis/start로
+                if (dailyCheckResult.success === false && dailyCheckResult.status === 'COMMON409') {
+                    navigate('/home');
+                } else {
+                    navigate('/diagnosis/start');
+                }
+            } else {
+                // 다른 사용자 타입의 라우팅
                 switch(userType) {
-                    case '간병인':
-                        navigate('/diagnosis/start');
-                        break;
                     case '환자':
                         navigate('/patient/home');
                         break;
@@ -58,11 +104,9 @@ const Login = () => {
                     default:
                         navigate('/');
                 }
-            } else {
-                const errorData = await response.text();
-                setError('로그인에 실패했습니다. 다시 시도해주세요.');
             }
         } catch (error) {
+            console.error('Login error:', error);
             setError('서버 연결에 실패했습니다.');
         }
     };
@@ -178,7 +222,10 @@ const Login = () => {
                 {/* 회원가입 링크 */}
                 <div className="text-center">
                     <span className="text-gray-500">처음 오셨나요? </span>
-                    <button className="text-[#496E1B] underline">
+                    <button
+                        onClick={() => navigate('/register', { state: { userType } })}
+                        className="text-[#496E1B] underline"
+                    >
                         회원가입하기
                     </button>
                 </div>

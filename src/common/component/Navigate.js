@@ -23,6 +23,7 @@ const Navigation = () => {
         navigate(path);
     };
 
+    const isHomePath = currentPath === '/home' || currentPath === '/caregiver/home';
     const isRoutinePath = currentPath.includes('/routine');
     const isHealthPath = currentPath.includes('/health');
     const isCommunityPath = currentPath.includes('/community');
@@ -32,8 +33,8 @@ const Navigation = () => {
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-green-900 rounded-full p-2 flex items-center gap-2">
             <NavIcon
                 Icon={Home}
-                active={currentPath === '/'}
-                onClick={() => handleNavigation('/')}
+                active={isHomePath}
+                onClick={() => handleNavigation('/home')}
             />
             <NavIcon
                 Icon={ClipboardList}
@@ -43,7 +44,7 @@ const Navigation = () => {
             <NavIcon
                 Icon={Heart}
                 active={isHealthPath}
-                onClick={() => handleNavigation('/health')}
+                onClick={() => handleNavigation('/dashboard/health')}
             />
             <NavIcon
                 Icon={Users}

@@ -92,13 +92,13 @@ const RoutineMain = () => {
     ];
 
     return (
-        <div className="max-w-md mx-auto min-h-screen" style={{background: '#F5F5F5'}}>
+        <div className="min-h-screen" style={{background: '#F5F5F5'}}>
             {/* Header */}
-            <div className="p-4 flex items-center" style={{background: '#F5F5F5'}}>
+            <div className="p-4 flex items-center mb-7" style={{background: '#F5F5F5'}}>
                 <div className="flex-1 text-center">
                     <h1 className="text-xl font-medium">내 루틴</h1>
                 </div>
-                <div className="absolute right-4 inline-flex bg-gray-200 rounded-lg p-1">
+                <div className="absolute right-4 inline-flex bg-gray-200 rounded-2lg">
                     <button
                         onClick={() => setView('week')}
                         className={`p-2 text-sm rounded-md transition-all ${
@@ -135,7 +135,7 @@ const RoutineMain = () => {
             </div>
             <div className="px-4 pb-24 flex flex-col h-full" style={{background: '#F5F5F5'}}>
                 {/* Calendar Component */}
-                <div className="mx-4">
+                <div className="mx-2">
                     <CustomCalendar
                         view={view}
                         routines={routines}
@@ -147,15 +147,16 @@ const RoutineMain = () => {
                 {/* Add Routine Button */}
                 <button
                     onClick={handleAddRoutine}
-                    className="mx-4 mt-4 p-3 rounded-xl bg-white border border-gray-200 text-center text-gray-600 hover:bg-gray-50 transition-colors"
+                    className="mx-2 mt-4 p-3 mb-4 rounded-xl bg-white border border-gray-200 text-center text-gray-600 hover:bg-gray-50 transition-colors"
                 >
                     + 루틴 추가
                 </button>
 
                 {/* Uncompleted Routines */}
-                <div className="mx-4 mt-4">
-                    <h2 className="text-sm text-gray-600 mb-2">아직 완료하지 않은 루틴</h2>
-                    <div className="space-y-2">
+                <div className="mx-1 mt-1 mb-4">
+                    <h2 className="text-sm text-gray-600 mb-4">아직 완료하지 않은 루틴</h2>
+                    <div className="space-y-2 ">
+
                         {routines
                             .filter(routine => !routine.isCompleted)
                             .map((routine) => (
@@ -168,7 +169,7 @@ const RoutineMain = () => {
                                                 {routine.time && <span>⏰ {routine.time}</span>}
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 relative">
+                                        <div className="flex items-center gap-2 relative mb-4">
                                             <button
                                                 onClick={() => toggleFavorite(routine.id)}
                                                 className={`text-xl ${favorites.has(routine.id) ? 'text-red-500' : 'text-gray-300'}`}
@@ -177,7 +178,7 @@ const RoutineMain = () => {
                                             </button>
                                             <button
                                                 onClick={() => setOpenMenuId(openMenuId === routine.id ? null : routine.id)}>
-                                                <MoreVertical size={20} className="text-gray-400"/>
+                                                <MoreVertical size={20} className="text-gray-400 "/>
                                             </button>
                                             <Dropdown
                                                 isOpen={openMenuId === routine.id}
@@ -192,8 +193,8 @@ const RoutineMain = () => {
                 </div>
 
                 {/* Today's Completed Routines */}
-                <div className="mx-4 mt-6 mb-24">
-                    <h2 className="text-sm text-gray-600 mb-2">오늘의 완료된 루틴</h2>
+                <div className="mx-1 mt-1">
+                    <h2 className="text-sm text-gray-600 mb-4">오늘의 완료된 루틴</h2>
                     <div className="space-y-2">
                         {routines
                             .filter(routine => routine.isCompleted)
