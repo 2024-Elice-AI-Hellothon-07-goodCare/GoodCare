@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import DiagnosisHeader from "./DiagnosisHeader";
 
 const DiagnosisInput = () => {
     const navigate = useNavigate();
@@ -35,16 +36,7 @@ const DiagnosisInput = () => {
 
     return (
         <div className="min-h-screen bg-[#E9EEEA] flex flex-col">
-            <div className="fixed top-0 left-0 right-0 bg-[#E9EEEA] z-50">
-                <div className="h-14 flex items-center justify-between px-4 border-b">
-                    <button onClick={() => navigate(-1)} className="p-2 -ml-2">
-                        ←
-                    </button>
-                    <span className="absolute left-1/2 -translate-x-1/2 font-medium">
-                        일일 진단하기
-                    </span>
-                </div>
-            </div>
+            <DiagnosisHeader />
 
             <main className="flex-1 px-4 pt-20">
                 <p className="text-xl font-bold mb-20">기본 생체 신호를 체크해주세요.</p>
@@ -58,7 +50,7 @@ const DiagnosisInput = () => {
                                     type="number"
                                     value={formData.pressureHigh}
                                     onChange={(e) => handleInputChange('pressureHigh', e.target.value)}
-                                    className="w-full h-12 px-4 rounded-lg bg-[#E4EFE0] focus:outline-none"
+                                    className="w-full h-12 px-4 rounded-lg bg-[#F6FFF3] focus:outline-none"
                                     placeholder="정상 범위: 90-120"
                                 />
                             </div>
@@ -67,8 +59,8 @@ const DiagnosisInput = () => {
                                     type="number"
                                     value={formData.pressureLow}
                                     onChange={(e) => handleInputChange('pressureLow', e.target.value)}
-                                    className="w-full h-12 px-4 rounded-lg bg-[#E4EFE0] focus:outline-none"
-                                    placeholder="정상 범위: 60-80 mmHg"
+                                    className="w-full h-12 px-4 rounded-lg bg-[#F6FFF3] focus:outline-none"
+                                    placeholder="60-80 mmHg"
                                 />
                             </div>
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">mmHg</span>
@@ -83,7 +75,7 @@ const DiagnosisInput = () => {
                                 type="number"
                                 value={formData.pulse}
                                 onChange={(e) => handleInputChange('pulse', e.target.value)}
-                                className="w-full h-12 px-4 rounded-lg bg-[#E4EFE0] focus:outline-none"
+                                className="w-full h-12 px-4 rounded-lg bg-[#F6FFF3] focus:outline-none"
                                 placeholder="정상 범위: 60-100회/분"
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">회/분</span>
@@ -98,7 +90,7 @@ const DiagnosisInput = () => {
                                 type="number"
                                 value={formData.oxygen}
                                 onChange={(e) => handleInputChange('oxygen', e.target.value)}
-                                className="w-full h-12 px-4 rounded-lg bg-[#E4EFE0] focus:outline-none"
+                                className="w-full h-12 px-4 rounded-lg bg-[#F6FFF3] focus:outline-none"
                                 placeholder="정상 범위: 95-100%"
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">%</span>
@@ -114,7 +106,7 @@ const DiagnosisInput = () => {
                                 step="0.1"
                                 value={formData.temperature}
                                 onChange={(e) => handleInputChange('temperature', e.target.value)}
-                                className="w-full h-12 px-4 rounded-lg bg-[#E4EFE0] focus:outline-none"
+                                className="w-full h-12 px-4 rounded-lg bg-[#F6FFF3] focus:outline-none"
                                 placeholder="정상 범위: 36.5-37.5°C"
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">°C</span>
@@ -129,7 +121,7 @@ const DiagnosisInput = () => {
                                 type="number"
                                 value={formData.breathing}
                                 onChange={(e) => handleInputChange('breathing', e.target.value)}
-                                className="w-full h-12 px-4 rounded-lg bg-[#E4EFE0] focus:outline-none"
+                                className="w-full h-12 px-4 rounded-lg bg-[#F6FFF3] focus:outline-none"
                                 placeholder="정상 범위: 12-20회/분"
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">회/분</span>

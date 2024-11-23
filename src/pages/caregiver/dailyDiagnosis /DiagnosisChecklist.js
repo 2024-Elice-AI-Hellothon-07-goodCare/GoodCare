@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import DiagnosisHeader from "./DiagnosisHeader";
 
 const DiagnosisChecklist = () => {
     const navigate = useNavigate();
@@ -33,7 +34,7 @@ const DiagnosisChecklist = () => {
             onClick={onChange}
             className={`
                 w-full p-4 rounded-lg flex justify-between items-center mb-3
-                ${checked ? 'bg-[#E4EFE0]' : 'bg-[#E4EFE0]'}
+                ${checked ? 'bg-[#CDE5C5]' : 'bg-[#F6FFF3]'}
             `}
         >
             <span>{label}</span>
@@ -47,16 +48,7 @@ const DiagnosisChecklist = () => {
 
     return (
         <div className="min-h-screen bg-[#E9EEEA] flex flex-col">
-            <div className="fixed top-0 left-0 right-0 bg-[#E9EEEA] z-50">
-                <div className="h-14 flex items-center justify-between px-4 border-b">
-                    <button onClick={() => navigate(-1)} className="p-2 -ml-2">
-                        ←
-                    </button>
-                    <span className="absolute left-1/2 -translate-x-1/2 font-medium">
-                        일일 진단하기
-                    </span>
-                </div>
-            </div>
+     <DiagnosisHeader/>
 
             <main className="flex-1 px-4 pt-20 pb-24">
                 <h2 className="text-xl font-bold mb-8">
@@ -64,8 +56,8 @@ const DiagnosisChecklist = () => {
                 </h2>
 
                 {/* 의식 수준 섹션 */}
-                <div className="mb-8">
-                    <h3 className="text-gray-600 mb-3">의식 수준</h3>
+                <div className="mb-8 pt-20">
+                    <h3 className="text-gray-600 mb-3 ">의식 수준</h3>
                     <CheckItem
                         label="명료해요"
                         checked={consciousnessLevel.clear}
