@@ -171,7 +171,7 @@ const DiagnosisChecklist = () => {
             </main>
 
             {/* 하단 버튼 */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#E9EEEA]">
+            <div className="left-0 right-0 pb-20 bg-[#E9EEEA]">
                 <div className="flex gap-3">
                     <button
                         onClick={() => navigate(-1)}

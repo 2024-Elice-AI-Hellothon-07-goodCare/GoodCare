@@ -47,7 +47,7 @@ const DiagnosisStart = () => {
                         </div>
                     </div>
 
-                    <div className="w-full pb-8">
+                    <div className="w-full pb-20">
                         <button
                             onClick={() => navigate('/diagnosis/input')}
                             className="w-full py-4 bg-[#496E1B] rounded-xl text-white font-medium

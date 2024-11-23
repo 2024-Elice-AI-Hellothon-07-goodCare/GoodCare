@@ -130,7 +130,7 @@ const DiagnosisInput = () => {
                 </div>
             </main>
 
-            <div className="px-4 py-8">
+            <div className="px-4 py-20">
                 <button
                     onClick={() => isValid && navigate('/diagnosis/checklist')}
                     className={`w-full py-4 rounded-xl text-white font-medium transition-colors duration-200
