@@ -6,7 +6,8 @@ import { Card } from "../../common/component/Card";
 import Header from "../../common/component/Header";
 import { getUserSession } from "../../utils/auth";
 import navigate from "../../common/component/Navigate";
-import { useNavigate } from 'react-router-dom';  // 상단에 import 추가
+import { useNavigate } from 'react-router-dom';
+import TutorialOverlay from "../../common/component/Tutorial";  // 상단에 import 추가
 
 
 const Home = () => {
@@ -17,6 +18,8 @@ const Home = () => {
     const [characterImage, setCharacterImage] = useState('');
     const navigate = useNavigate();  // useNavigate 훅 사용
     const [routines, setRoutines] = useState([]);
+    const [showTutorial, setShowTutorial] = useState(true); // 튜토리얼 표시 상태
+
 
 
     const handleAddRoutine = () => {
@@ -203,6 +206,8 @@ const Home = () => {
 
     return (
         <div className="min-h-screen pb-24" style={{background: '#F5F5F5'}}>
+            {showTutorial && <TutorialOverlay onClose={() => setShowTutorial(false)} />} {/* 오버레이 표시 */}
+
             <div className="fixed top-0 left-0 right-0 z-10">
                 <Header/>
             </div>
