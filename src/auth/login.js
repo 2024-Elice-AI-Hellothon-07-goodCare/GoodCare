@@ -70,39 +70,50 @@ const Login = () => {
 
             setUserSession(sessionData);
 
-            // 사용자 타입에 따른 라우팅
             if (userType === '간병인') {
-                // 한 번의 API 호출로 체크
-                const dailyCheckResponse = await fetch(
-                    `${process.env.REACT_APP_API_URL}/patient/daily-check/check-today?code=${userData.patientCode}`,
-                    {
-                        headers: { 'accept': '*/*' }
+                try {
+                    console.log('Fetching daily check status for patient:', userData.patientCode);
+
+                    const dailyCheckResponse = await fetch(
+                        `${process.env.REACT_APP_API_URL}/patient/daily-check/check-today?code=${userData.patientCode}`,
+                        {
+                            headers: { 'accept': '*/*' }
+                        }
+                    );
+
+                    console.log('Daily check response status:', dailyCheckResponse.status);
+
+                    if (dailyCheckResponse.ok) {
+                        const dailyCheckResult = await dailyCheckResponse.json();
+                        console.log('Daily check result:', dailyCheckResult);
+
+                        if (dailyCheckResult.success === false && dailyCheckResult.status === 'COMMON409') {
+                            console.log('Navigating to home');
+                            navigate('/home');
+                        } else {
+                            console.log('Navigating to diagnosis/start');
+                            navigate('/diagnosis/start', { replace: true });  // replace: true 추가
+                        }
+                    } else {
+                        console.log('API call failed, navigating to diagnosis/start');
+                        navigate('/diagnosis/start', { replace: true });
                     }
-                );
-
-                if (!dailyCheckResponse.ok) {
-                    navigate('/diagnosis/start');
-                    return;
-                }
-
-                const dailyCheckResult = await dailyCheckResponse.json();
-                // false이고 409 상태일 때만 home으로, 나머지는 diagnosis/start로
-                if (dailyCheckResult.success === false && dailyCheckResult.status === 'COMMON409') {
-                    navigate('/home');
-                } else {
-                    navigate('/diagnosis/start');
+                } catch (error) {
+                    console.error('Error in daily check:', error);
+                    navigate('/diagnosis/start', { replace: true });
                 }
             } else {
                 // 다른 사용자 타입의 라우팅
+                console.log('Non-caregiver user type:', userType);
                 switch(userType) {
                     case '환자':
-                        navigate('/patient/home');
+                        navigate('/patient/home', { replace: true });
                         break;
                     case '가족':
-                        navigate('/family/home');
+                        navigate('/family/home', { replace: true });
                         break;
                     default:
-                        navigate('/');
+                        navigate('/', { replace: true });
                 }
             }
         } catch (error) {

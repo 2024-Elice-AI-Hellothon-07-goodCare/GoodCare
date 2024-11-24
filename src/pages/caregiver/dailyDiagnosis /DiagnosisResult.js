@@ -211,7 +211,7 @@ const DiagnosisResult = () => {
 
                 <div className="flex gap-3">
                     <button
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/dashboard/health')}
                         className="flex-1 py-4 bg-[#F6FFF3] rounded-xl text-[#496E1B] font-medium"
                     >
                         대시보드

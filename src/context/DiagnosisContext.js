@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { getUserSession } from '../utils/auth';
+import {Outlet} from "react-router-dom";
 
 const DiagnosisContext = createContext();
 
@@ -153,9 +154,9 @@ export const DiagnosisProvider = ({ children }) => {
 
     return (
         <DiagnosisContext.Provider value={contextValue}>
-            {children}
+            <Outlet />
         </DiagnosisContext.Provider>
-    );
+    )
 };
 
 export const useDiagnosis = () => {

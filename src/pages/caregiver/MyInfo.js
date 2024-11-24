@@ -4,36 +4,56 @@ import Navigate from '../../common/component/Navigate';
 
 const MyInfo = () => {
     const [patientInfo, setPatientInfo] = useState(null);
+    const [fileInfo, setFileInfo] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedFile, setSelectedFile] = useState(null);
-    const [uploadedFileName, setUploadedFileName] = useState(null);
+
+    const fetchPatientInfo = async () => {
+        try {
+            const userInfo = getUserSession();
+            const patientCode = userInfo?.patientInfo?.code || userInfo?.code;
+
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}/patient/info/get/code?code=${patientCode}`,
+                { headers: { 'accept': '*/*' } }
+            );
+
+            const result = await response.json();
+            if (result.success) {
+                setPatientInfo(result.data);
+            }
+        } catch (error) {
+            console.error('Error fetching patient info:', error);
+        }
+    };
+
+    const fetchFileInfo = async () => {
+        try {
+            const userInfo = getUserSession();
+            const patientCode = userInfo?.patientInfo?.code || userInfo?.code;
+
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}/patient/file/?code=${patientCode}`,
+                { headers: { 'accept': '*/*' } }
+            );
+
+            const result = await response.json();
+            if (result.success) {
+                setFileInfo(result.data);
+            }
+        } catch (error) {
+            console.error('Error fetching file info:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchPatientInfo = async () => {
-            try {
-                const userInfo = getUserSession();
-                const patientCode = userInfo?.patientInfo?.code || userInfo?.code;
-
-                const response = await fetch(
-                    `${process.env.REACT_APP_API_URL}/patient/info/get/code?code=${patientCode}`,
-                    { headers: { 'accept': '*/*' } }
-                );
-
-                const result = await response.json();
-                if (result.success) {
-                    setPatientInfo(result.data);
-                    if (result.data.fileName) {
-                        setUploadedFileName(result.data.fileName);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching patient info:', error);
-            } finally {
-                setIsLoading(false);
-            }
+        const fetchData = async () => {
+            await fetchPatientInfo();
+            await fetchFileInfo();
         };
-
-        fetchPatientInfo();
+        fetchData();
     }, []);
 
     const handleFileSelect = (event) => {
@@ -78,10 +98,12 @@ const MyInfo = () => {
             const result = await response.json();
 
             if (result.success) {
-                setUploadedFileName(result.data.originalFileName);
                 alert('파일이 성공적으로 업로드되었습니다.');
-                // 파일 선택 초기화
                 setSelectedFile(null);
+
+                // 파일 정보와 환자 정보 새로고침
+                await fetchFileInfo();
+                await fetchPatientInfo();
             } else {
                 throw new Error(result.message || '파일 업로드에 실패했습니다.');
             }
@@ -125,8 +147,8 @@ const MyInfo = () => {
                             <span>{patientInfo?.underlyingDisease}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-gray-600">음성 업로드</span>
-                            <span>{patientInfo?.code}.mp3</span>
+                            <span className="text-gray-600">음성 파일</span>
+                            <span>{fileInfo?.fileName || '없음'}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-600">환자 코드</span>
@@ -137,15 +159,14 @@ const MyInfo = () => {
 
                 {/* 음성 업로드 섹션 */}
                 <div className="bg-[#F6FFF3] rounded-2xl p-4 mb-6">
-                    {patientInfo?.code ? (
+                    {fileInfo?.fileName ? (
                         // 파일이 이미 존재하는 경우
                         <div className="flex flex-col">
                             <p className="text-sm text-gray-600 mb-2">음성이 이미 등록되어 있습니다.</p>
                             <div className="bg-white rounded-lg px-4 py-2 flex items-center justify-between">
-                <span className="text-sm text-gray-600">
-                    {patientInfo.code}.mp3
-                </span>
-                                {/* 필요한 경우 다운로드나 재생 버튼 추가 */}
+                                <span className="text-sm text-gray-600">
+                                    {fileInfo.fileName}
+                                </span>
                             </div>
                         </div>
                     ) : (
@@ -167,9 +188,9 @@ const MyInfo = () => {
                                         className="hidden"
                                     />
                                     <div className="w-full flex items-center justify-between px-4 py-2 bg-white rounded-lg text-sm cursor-pointer">
-                        <span className="text-gray-500">
-                            {selectedFile ? selectedFile.name : '파일 선택'}
-                        </span>
+                                        <span className="text-gray-500">
+                                            {selectedFile ? selectedFile.name : '파일 선택'}
+                                        </span>
                                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                             <path d="M10 4V16M16 10H4" stroke="currentColor" strokeWidth="2"/>
                                         </svg>

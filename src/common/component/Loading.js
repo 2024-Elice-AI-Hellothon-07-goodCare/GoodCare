@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDiagnosis } from '../../context/DiagnosisContext';  // 경로는 실제 구조에 맞게 수정
+import { useDiagnosis } from '../../context/DiagnosisContext';
 
 const CHARACTER_STATES = [
     'Excellent',
@@ -27,6 +27,7 @@ const Loading = ({
     const [currentImage, setCurrentImage] = useState('');
     const [displayMessage, setDisplayMessage] = useState(message);
     const [showFinalState, setShowFinalState] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
         const allCombinations = CHARACTER_STATES.flatMap(state =>
@@ -38,8 +39,10 @@ const Loading = ({
         let interval;
 
         const processAnalysis = async () => {
+            if (isProcessing) return;
+
+            setIsProcessing(true);
             try {
-                // 한국 시간으로 오늘 날짜 가져오기
                 const today = new Date().toLocaleDateString('ko-KR', {
                     timeZone: 'Asia/Seoul',
                     year: 'numeric',
@@ -47,19 +50,17 @@ const Loading = ({
                     day: '2-digit'
                 }).replace(/\. /g, '-').replace('.', '');
 
-                // AI 분석 결과 가져오기
                 const analysisResult = await getAIAnalysis();
 
-                // 로딩 애니메이션 완료
                 clearInterval(interval);
                 setCurrentImage('/img/marimo/Excellent-green.png');
                 setDisplayMessage('결과 분석 완료!');
                 setShowFinalState(true);
 
-                // 분석 결과와 함께 결과 페이지로 이동
                 setTimeout(() => {
                     navigate('/diagnosis/result', {
-                        state: { analysisData: analysisResult,
+                        state: {
+                            analysisData: analysisResult,
                             date: today
                         }
                     });
@@ -72,6 +73,8 @@ const Loading = ({
                         state: { error: '분석 중 오류가 발생했습니다.' }
                     });
                 }, 1500);
+            } finally {
+                setIsProcessing(false);
             }
         };
 
@@ -81,19 +84,17 @@ const Loading = ({
                 const randomIndex = Math.floor(Math.random() * allCombinations.length);
                 setCurrentImage(allCombinations[randomIndex]);
                 count++;
-            } else {
-                // maxCount에 도달하면 AI 분석 시작
+            } else if (!isProcessing) {
                 processAnalysis();
             }
         }, 300);
 
-        // 초기 이미지 설정
         setCurrentImage(allCombinations[0]);
 
         return () => {
             clearInterval(interval);
         };
-    }, [navigate, getAIAnalysis]);
+    }, [navigate, getAIAnalysis, isProcessing]);
 
     return (
         <div className={`min-h-screen bg-[#E9EEEA] ${className}`}>
