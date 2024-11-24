@@ -8,6 +8,7 @@ const StatusCheck = () => {
     const [isLoading, setIsLoading] = useState(true);
     const userInfo = getUserSession();
     const [currentlyPlaying, setCurrentlyPlaying] = useState(null); // 현재 재생 중인 오디오 추적
+    const [patientName, setPatientName] = useState('');
 
     const fetchAISpeechData = async () => {
         try {
@@ -41,6 +42,32 @@ const StatusCheck = () => {
             setIsLoading(false);
         }
     };
+    const fetchPatientName = async () => {
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}/caregiver/info/get/patient-name?code=${userInfo.code}`,
+                {
+                    headers: {
+                        'accept': '*/*'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+
+                throw new Error('Failed to fetch patient name');
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                setPatientName(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching patient name:', error);
+        }
+    };
+
 
     useEffect(() => {
         fetchAISpeechData();
@@ -53,6 +80,9 @@ const StatusCheck = () => {
             }
         };
     }, []);
+
+
+
 
     const handleAudioPlay = async (fileName) => {
         try {
@@ -95,6 +125,9 @@ const StatusCheck = () => {
         }
     };
 
+    fetchPatientName();
+
+
     return (
         <div className="flex flex-col min-h-screen bg-white">
             {/* 헤더 */}
@@ -116,7 +149,7 @@ const StatusCheck = () => {
             <div className="flex-1 pt-14 pb-24">
                 {/* 상황 설명 */}
                 <div className="px-4 py-6 text-center text-base">
-                    <p className="text-gray-800">전성원님이 방금 지속적인 환부 통증으로</p>
+                    <p className="text-gray-800">{patientName}님, 방금 지속적인 환부 통증으로</p>
                     <p className="text-gray-800">119 요청 신호를 보냈어요</p>
                 </div>
 
