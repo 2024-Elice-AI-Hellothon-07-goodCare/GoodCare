@@ -65,7 +65,7 @@ const Register = () => {
                     return;
                 }
 
-                const response = await fetch(`${process.env.REACT_APP_API_URL}/guardian/info/save`, {
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/caregiver/info/save`, {
                     method: 'POST',
                     headers: {
                         'accept': '*/*',
