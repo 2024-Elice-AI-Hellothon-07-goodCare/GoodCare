@@ -26,7 +26,7 @@ const Navigation = () => {
     const isHomePath = currentPath === '/home' || currentPath === '/caregiver/home';
     const isRoutinePath = currentPath.includes('/routine');
     const isHealthPath = currentPath.includes('/health');
-    const isCommunityPath = currentPath.includes('/community');
+    const isCommunityPath = currentPath.includes('/myinfo');
 
     return (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-green-900 rounded-full p-2 flex items-center gap-2">
