@@ -206,7 +206,7 @@ const DiagnosisResult = () => {
                             window.location.href = "tel:+821027475990";
                         }}                        className="flex-1 py-2.5 px-4 bg-[#F6FFF3] rounded-xl text-[#496E1B] text-sm"
                     >
-                        병원에 보내기
+                        병원에 전화하기
                     </button>
                 </div>
 
