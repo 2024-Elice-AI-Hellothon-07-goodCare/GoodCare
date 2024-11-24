@@ -8,29 +8,58 @@ import {
     YAxis,
     Tooltip,
     ResponsiveContainer,
-    ReferenceLine
+    ReferenceLine,
+    Line
 } from 'recharts';
 
 const Dashboard = () => {
     const [checklistData, setChecklistData] = useState(null);
-    const [selectedVital, setSelectedVital] = useState('bloodPressure');
+    const [selectedVital, setSelectedVital] = useState('bloodPressure'); // 선택된 생체 지표
+    const [chartData, setChartData] = useState([]); // 그래프 데이터
     const [isLoading, setIsLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(() => {
         const now = new Date();
         const seoulTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
         return seoulTime;
-    });    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+    });
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
     const userInfo = getUserSession();
 
-    const getCharacterImage = (status) => {
-        const imageTypes = {
-            '좋음': 'Excellent-green',
-            '보통': 'Neutral-yellow',
-            '나쁨': 'Poor-red'
-        };
-        return `/img/marimo/${imageTypes[status] || 'Neutral-yellow'}.png`;
+    const vitalLabels = {
+        bloodPressure: { name: '혈압', unit: 'mmHg', range: { sys: [90, 140], dia: [60, 90] } },
+        oxygen: { name: '산소포화도', unit: '%', range: [90, 100] },
+        temperature: { name: '체온', unit: '°C', range: [35.5, 37.5] },
+        pulse: { name: '맥박', unit: 'bpm', range: [60, 100] }
     };
 
+    // 더미 데이터 생성 함수
+    const generateDummyData = (vital) => {
+        const data = [];
+        const now = new Date();
+
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(now);
+            date.setDate(now.getDate() - i);
+
+            if (vital === 'bloodPressure') {
+                const sys = Math.floor(Math.random() * (vitalLabels[vital].range.sys[1] - vitalLabels[vital].range.sys[0] + 1)) + vitalLabels[vital].range.sys[0];
+                const dia = Math.floor(Math.random() * (vitalLabels[vital].range.dia[1] - vitalLabels[vital].range.dia[0] + 1)) + vitalLabels[vital].range.dia[0];
+                data.push({ date: `${date.getMonth() + 1}/${date.getDate()}`, sys, dia });
+            } else {
+                const value = parseFloat((Math.random() * (vitalLabels[vital].range[1] - vitalLabels[vital].range[0]) + vitalLabels[vital].range[0]).toFixed(1));
+                data.push({ date: `${date.getMonth() + 1}/${date.getDate()}`, value });
+            }
+        }
+
+        return data;
+    };
+
+    // 선택된 지표에 따라 더미 데이터를 생성
+    useEffect(() => {
+        setChartData(generateDummyData(selectedVital));
+    }, [selectedVital]);
+
+    // 데이터를 불러오는 함수
     const fetchData = async (date) => {
         try {
             setIsLoading(true);
@@ -59,62 +88,40 @@ const Dashboard = () => {
         if (userInfo) {
             fetchData(selectedDate);
         }
-    }, [selectedDate]); // selectedDate를 의존성 배열에 추가
+    }, [selectedDate]);
 
+    // 날짜 선택
     const handleDateSelect = (date) => {
-        const now = new Date();
-        const seoulTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
-        setSelectedDate(seoulTime);
+        setSelectedDate(date);
         setIsDatePickerOpen(false);
         fetchData(date);
     };
 
-    const handleDailyCheckClick = () => {
-        // 서울 시간으로 현재 날짜 설정
-        const now = new Date();
-        const seoulTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
-        setSelectedDate(seoulTime);
-        setIsDatePickerOpen(true);
-    };
-
+    // 날짜 포맷팅
     const formatDate = (date) => {
         return `${date.getMonth() + 1}월 ${date.getDate()}일`;
     };
 
-    const vitalLabels = {
-        bloodPressure: { name: '혈압', unit: 'mmHg' },
-        oxygen: { name: '산소포화도', unit: '%' },
-        temperature: { name: '체온', unit: '°C' },
-        pulse: { name: '맥박', unit: 'bpm' }
-    };
-
-    const getCurrentValue = () => {
-        if (!checklistData?.vitalSigns) return '--';
-
-        const vitalSigns = checklistData.vitalSigns;
-        switch (selectedVital) {
-            case 'bloodPressure':
-                return `${vitalSigns.bloodPressureSys}/${vitalSigns.bloodPressureDia}`;
-            case 'oxygen':
-                return vitalSigns.oxygen;
-            case 'temperature':
-                return vitalSigns.temperature;
-            case 'pulse':
-                return vitalSigns.pulse;
-            default:
-                return '--';
-        }
-    };
-
-    const CustomTooltip = ({ active, payload }) => {
+    // 커스텀 툴팁
+    const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
-            return (
-                <div className="bg-white p-2 shadow-md rounded-md">
-                    <p className="text-sm">
-                        {`${payload[0].payload.date}: ${payload[0].value} ${vitalLabels[selectedVital].unit}`}
-                    </p>
-                </div>
-            );
+            if (selectedVital === 'bloodPressure') {
+                return (
+                    <div className="bg-white p-2 shadow-md rounded-md">
+                        <p className="text-sm">
+                            {`${label}: 수축기 ${payload[0].value}mmHg / 이완기 ${payload[1].value}mmHg`}
+                        </p>
+                    </div>
+                );
+            } else {
+                return (
+                    <div className="bg-white p-2 shadow-md rounded-md">
+                        <p className="text-sm">
+                            {`${label}: ${payload[0].value} ${vitalLabels[selectedVital].unit}`}
+                        </p>
+                    </div>
+                );
+            }
         }
         return null;
     };
@@ -128,8 +135,8 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="min-h-screen" style={{background: '#F5F5F5'}}>
-            <header className="fixed top-0 left-0 right-0 z-10 p-4 text-center border-b" style={{background: '#F5F5F5'}}>
+        <div className="min-h-screen" style={{ background: '#F5F5F5' }}>
+            <header className="fixed top-0 left-0 right-0 z-10 p-4 text-center border-b" style={{ background: '#F5F5F5' }}>
                 <h1 className="text-xl font-medium">대시보드</h1>
             </header>
 
@@ -137,7 +144,7 @@ const Dashboard = () => {
                 {/* 캐릭터 섹션 */}
                 <div className="flex justify-center my-8">
                     <img
-                        src={getCharacterImage(checklistData?.dailyCheckList?.analysisWord)}
+                        src={`/img/marimo/Neutral-yellow.png`}
                         alt="Character"
                         className="w-34 h-44"
                     />
@@ -154,76 +161,85 @@ const Dashboard = () => {
                     </p>
                 </div>
 
+                {/* 생체 지표 선택 버튼 */}
+                <div className="flex gap-2 mb-4 flex-wrap">
+                    {Object.entries(vitalLabels).map(([key, value]) => (
+                        <button
+                            key={key}
+                            onClick={() => setSelectedVital(key)}
+                            className={`px-3 py-1 rounded-full text-sm ${
+                                selectedVital === key
+                                    ? 'bg-[#496E1B] text-white'
+                                    : 'bg-gray-200 text-gray-600'
+                            }`}
+                        >
+                            {value.name}
+                        </button>
+                    ))}
+                </div>
+
                 {/* 생체 지표 그래프 카드 */}
                 <div className="bg-white rounded-2xl p-4 mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                        <div className="flex items-center gap-2">
-                            <span className="text-lg">{vitalLabels[selectedVital].name}</span>
-                            <span className="text-red-500 text-sm">▲ 1.2%</span>
-                        </div>
-                        <div>
-                            <div className="text-2xl font-medium">
-                                {getCurrentValue()}
-                                <span className="text-sm text-gray-500 ml-1">
-                                    {vitalLabels[selectedVital].unit}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 필터 버튼 */}
-                    <div className="flex gap-2 mb-4 flex-wrap">
-                        {Object.entries(vitalLabels).map(([key, value]) => (
-                            <button
-                                key={key}
-                                onClick={() => setSelectedVital(key)}
-                                className={`px-3 py-1 rounded-full text-sm ${
-                                    selectedVital === key
-                                        ? 'bg-[#496E1B] text-white'
-                                        : 'bg-gray-200 text-gray-600'
-                                }`}
-                            >
-                                {value.name}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* 그래프 */}
                     <div className="h-48">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
-                                data={[]}
-                                margin={{top: 10, right: 10, left: -20, bottom: 0}}
+                                data={chartData}
+                                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                             >
                                 <defs>
+                                    <linearGradient id="colorSys" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#FF6384" stopOpacity={0.1} />
+                                        <stop offset="95%" stopColor="#FF6384" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorDia" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#36A2EB" stopOpacity={0.1} />
+                                        <stop offset="95%" stopColor="#36A2EB" stopOpacity={0} />
+                                    </linearGradient>
                                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#496E1B" stopOpacity={0.1}/>
-                                        <stop offset="95%" stopColor="#496E1B" stopOpacity={0.01}/>
+                                        <stop offset="5%" stopColor="#496E1B" stopOpacity={0.1} />
+                                        <stop offset="95%" stopColor="#496E1B" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <XAxis
                                     dataKey="date"
                                     axisLine={false}
                                     tickLine={false}
-                                    tick={{fontSize: 12}}
+                                    tick={{ fontSize: 12 }}
                                 />
-                                <YAxis hide={true} domain={['dataMin - 10', 'dataMax + 10']}/>
-                                <Tooltip content={<CustomTooltip/>}/>
-                                <ReferenceLine
-                                    y={120}
-                                    stroke="#496E1B"
-                                    strokeDasharray="3 3"
-                                    strokeOpacity={0.5}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="value"
-                                    stroke="#496E1B"
-                                    fill="url(#colorValue)"
-                                    strokeWidth={2}
-                                    dot={{fill: '#496E1B', r: 4}}
-                                    activeDot={{r: 6, fill: '#496E1B'}}
-                                />
+                                <YAxis hide={true} />
+                                <Tooltip content={<CustomTooltip />} />
+                                {selectedVital === 'bloodPressure' ? (
+                                    <>
+                                        <Area
+                                            type="monotone"
+                                            dataKey="sys"
+                                            stroke="#FF6384"
+                                            fill="url(#colorSys)"
+                                            strokeWidth={2}
+                                            dot={{ fill: '#FF6384', r: 4 }}
+                                            activeDot={{ r: 6, fill: '#FF6384' }}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="dia"
+                                            stroke="#36A2EB"
+                                            fill="url(#colorDia)"
+                                            strokeWidth={2}
+                                            dot={{ fill: '#36A2EB', r: 4 }}
+                                            activeDot={{ r: 6, fill: '#36A2EB' }}
+                                        />
+                                    </>
+                                ) : (
+                                    <Area
+                                        type="monotone"
+                                        dataKey="value"
+                                        stroke="#496E1B"
+                                        fill="url(#colorValue)"
+                                        strokeWidth={2}
+                                        dot={{ fill: '#496E1B', r: 4 }}
+                                        activeDot={{ r: 6, fill: '#496E1B' }}
+                                    />
+                                )}
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -242,7 +258,7 @@ const Dashboard = () => {
                 {/* 하단 버튼 섹션 */}
                 <div className="flex gap-4">
                     <button
-                        onClick={handleDailyCheckClick}
+                        onClick={() => setIsDatePickerOpen(true)}
                         className="flex-1 py-4 bg-white rounded-xl text-[#496E1B]"
                     >
                         일일 진단 보기
@@ -275,10 +291,10 @@ const Dashboard = () => {
                     </div>
                 )}
 
-                <Navigate/>
+                <Navigate />
             </main>
         </div>
-);
+    );
 };
 
 export default Dashboard;
