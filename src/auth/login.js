@@ -127,7 +127,7 @@ const Login = () => {
             <div className="min-h-screen bg-[#E9EEEA] flex flex-col items-center px-4">
                 {/* 로고 */}
                 <img
-                    src="/img/GOODCARE.png"
+                    src="/img/GOODCARE.svg"
                     alt="GOODCARE"
                     className="mt-20 mb-16 h-8"
                 />
@@ -175,7 +175,7 @@ const Login = () => {
         <div className="min-h-screen bg-[#E9EEEA] flex flex-col items-center px-4">
             {/* 로고 */}
             <img
-                src="/img/GOODCARE.png"
+                src="/img/GOODCARE.svg"
                 alt="GOODCARE"
                 className="mt-20 mb-16 h-8"
             />

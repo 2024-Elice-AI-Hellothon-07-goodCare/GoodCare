@@ -52,7 +52,7 @@ const Header = ({
                 flex justify-center items-center py-3
                 max-w-md mx-auto w-full
             ">
-                <img src="/img/GOODCARE.png" alt="GOODCARE" className="h-5" />
+                <img src="/img/GOODCARE.svg" alt="GOODCARE" className="h-5" />
             </div>
         </header>
     );
