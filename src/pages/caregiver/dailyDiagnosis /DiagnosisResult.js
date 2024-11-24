@@ -202,8 +202,9 @@ const DiagnosisResult = () => {
                         전체 답변 확인하기
                     </button>
                     <button
-                        onClick={() => navigate('/diagnosis/share')}
-                        className="flex-1 py-2.5 px-4 bg-[#F6FFF3] rounded-xl text-[#496E1B] text-sm"
+                        onClick={() => {
+                            window.location.href = "tel:+821027475990";
+                        }}                        className="flex-1 py-2.5 px-4 bg-[#F6FFF3] rounded-xl text-[#496E1B] text-sm"
                     >
                         병원에 보내기
                     </button>
