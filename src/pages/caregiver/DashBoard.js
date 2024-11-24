@@ -263,8 +263,11 @@ const Dashboard = () => {
                     >
                         일일 진단 보기
                     </button>
-                    <button className="flex-1 py-4 bg-white rounded-xl text-[#496E1B]">
-                        병원에 전송하기
+                    <button className="flex-1 py-4 bg-white rounded-xl text-[#496E1B]"
+                            onClick={() => {
+                                window.location.href = "tel:+821027475990";
+                            }}    >
+                        병원에 전화하기
                     </button>
                 </div>
 
