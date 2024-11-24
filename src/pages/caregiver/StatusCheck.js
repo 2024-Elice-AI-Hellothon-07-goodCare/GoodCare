@@ -7,31 +7,93 @@ const StatusCheck = () => {
     const [messages, setMessages] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const userInfo = getUserSession();
+    const [currentlyPlaying, setCurrentlyPlaying] = useState(null); // 현재 재생 중인 오디오 추적
+
+    const fetchAISpeechData = async () => {
+        try {
+            const patientCode = userInfo?.patientInfo?.code || userInfo?.code;
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}/patient/ai/get/intra-speech?code=${patientCode}`,
+                { headers: { 'accept': '*/*' } }
+            );
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data.length > 0) {
+                    const aiMessages = result.data.map(item => ({
+                        time: new Date().toLocaleTimeString('ko-KR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                            timeZone: 'Asia/Seoul'
+                        }),
+                        text: item.inputText,
+                        hasAudio: true,
+                        audioFileName: item.interSpeechFileName
+                    }));
+
+                    setMessages(aiMessages);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching AI speech data:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
-        setMessages([
-            {
-                time: "17:59",
-                text: "전성원님이 도움을 요청했어요",
-                hasAudio: true
-            },
-            {
-                time: "17:59",
-                text: "전성원님이 통증을 호소하고 있어요",
-                hasAudio: true
-            },
-            {
-                time: "18:00",
-                text: "간병인에게 다시 일람을 받아요",
-                hasAudio: true
-            },
-            {
-                time: "18:02",
-                text: "간병인님이 전성원님의 상태를 확인하고 있어요"
+        fetchAISpeechData();
+
+        // 컴포넌트 언마운트 시 오디오 정리
+        return () => {
+            if (currentlyPlaying) {
+                currentlyPlaying.pause();
+                currentlyPlaying.src = '';
             }
-        ]);
-        setIsLoading(false);
+        };
     }, []);
+
+    const handleAudioPlay = async (fileName) => {
+        try {
+            // 이전 재생 중인 오디오가 있다면 중지
+            if (currentlyPlaying) {
+                currentlyPlaying.pause();
+                currentlyPlaying.src = '';
+            }
+
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}/patient/file/inter-speech/download?filename=${fileName}`,
+                { headers: { 'accept': '*/*' } }
+            );
+
+            if (response.ok) {
+                // Blob으로 변환
+                const blob = await response.blob();
+                const audioUrl = URL.createObjectURL(blob);
+                const audio = new Audio(audioUrl);
+
+                setCurrentlyPlaying(audio);
+
+                // 재생 완료 시 정리
+                audio.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    setCurrentlyPlaying(null);
+                };
+
+                // 에러 발생 시 정리
+                audio.onerror = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    setCurrentlyPlaying(null);
+                    console.error('Error playing audio');
+                };
+
+                await audio.play();
+            }
+        } catch (error) {
+            console.error('Error playing audio:', error);
+        }
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-white">
@@ -74,20 +136,18 @@ const StatusCheck = () => {
                             >
                                 <p className="text-[15px] pr-8 leading-5">{message.text}</p>
                                 {message.hasAudio && (
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-lg" style={{ color: '#496E1B' }}>
+                                    <button
+                                        onClick={() => handleAudioPlay(message.audioFileName)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-lg"
+                                        style={{ color: '#496E1B' }}
+                                        disabled={currentlyPlaying !== null}
+                                    >
                                         🔊
-                                    </span>
+                                    </button>
                                 )}
                             </div>
                         </div>
                     ))}
-                </div>
-
-                {/* 상태 업데이트 메시지 */}
-                <div className="flex justify-center mt-6">
-                    <div className="bg-[#E8F3E6] rounded-full px-5 py-2 text-sm text-gray-600">
-                        상태 업데이트 중...
-                    </div>
                 </div>
             </div>
 

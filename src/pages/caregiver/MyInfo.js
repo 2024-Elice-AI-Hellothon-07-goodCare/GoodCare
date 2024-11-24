@@ -188,19 +188,6 @@ const MyInfo = () => {
                     )}
                 </div>
 
-                {/* 등록된 계정 섹션 */}
-                <h3 className="text-base font-medium mb-3">등록된 계정</h3>
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                    <div className="bg-[#F6FFF3] rounded-xl p-3 text-center">
-                        <span className="text-sm">전성원</span>
-                        <span className="text-xs text-gray-500 block">환자</span>
-                    </div>
-                    <div className="bg-[#F6FFF3] rounded-xl p-3 text-center">
-                        <span className="text-sm">전성원</span>
-                        <span className="text-xs text-gray-500 block">간병인</span>
-                    </div>
-                </div>
-
                 {/* 계정 추가 버튼 */}
                 <button className="w-full py-3 bg-white rounded-xl text-[#496E1B] text-sm">
                     + 가족 추가
