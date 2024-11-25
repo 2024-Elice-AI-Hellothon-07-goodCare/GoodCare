@@ -19,6 +19,8 @@ const Navigation = () => {
     const location = useLocation();
     const currentPath = location.pathname;
 
+
+
     const handleNavigation = (path) => {
         navigate(path);
     };
